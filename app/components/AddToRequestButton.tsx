@@ -35,7 +35,7 @@ export default function AddToRequestButton({ item }: { item: any }) {
       </button>
 
       <a
-        href="/request"
+        href="/request-basket"
         className="block w-full text-center text-sm font-bold text-[#108280] hover:underline"
       >
         Anfragekorb ansehen →

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 const API_URL = "https://trustbridgeb2b.com/backend/wp-json/trustbridge/v1";
 
@@ -25,86 +26,154 @@ export default function RegisterPage() {
       message: formData.get("message"),
     };
 
-    const res = await fetch(`${API_URL}/register-request`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
+    try {
+      const res = await fetch(`${API_URL}/register-request`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
 
-    setLoading(false);
+      const data = await res.json();
 
-    if (res.ok) {
-      setSuccess(true);
-    } else {
-      alert("Fehler beim Senden der Registrierung.");
+      if (res.ok && data.success) {
+        setSuccess(true);
+      } else {
+        alert(data.message || "Fehler beim Senden der Registrierung.");
+      }
+    } catch {
+      alert("Serverfehler. Bitte versuchen Sie es später erneut.");
+    } finally {
+      setLoading(false);
     }
   }
 
   if (success) {
     return (
-      <main className="min-h-screen bg-gray-50 flex items-center justify-center px-6">
-        <div className="max-w-xl rounded-2xl bg-white p-8 shadow text-center">
-          <h1 className="text-3xl font-black text-teal-900">
+      <main className="flex min-h-screen items-center justify-center bg-[#f4f6f8] px-6">
+        <div className="w-full max-w-xl rounded-3xl border bg-white p-10 text-center shadow-sm">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#108280]/10 text-3xl">
+            ✓
+          </div>
+
+          <p className="mt-6 text-xs font-black uppercase tracking-wider text-[#108280]">
             Registrierung erhalten
-          </h1>
-          <p className="mt-4 text-gray-600">
-            Vielen Dank. Das TrustBridge-Team prüft Ihre Daten. Nach Freigabe
-            erhalten Sie Ihre Login-Daten per E-Mail.
           </p>
+
+          <h1 className="mt-2 text-3xl font-black text-slate-950">
+            Vielen Dank.
+          </h1>
+
+          <p className="mt-4 text-sm leading-6 text-slate-600">
+            Das TrustBridge-Team prüft Ihre Daten. Nach Freigabe erhalten Sie
+            Ihre Login-Daten per E-Mail.
+          </p>
+
+          <Link
+            href="/login"
+            className="mt-8 inline-block rounded-xl bg-[#108280] px-6 py-3 text-sm font-black uppercase text-white hover:bg-[#0d6b69]"
+          >
+            Zum Login
+          </Link>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 flex items-center justify-center px-6 py-12">
-      <div className="w-full max-w-2xl rounded-2xl bg-white p-8 shadow">
-        <h1 className="text-3xl font-black text-teal-900">
-          TrustBridge Registrierung
-        </h1>
+    <main className="min-h-screen bg-[#f4f6f8] text-slate-900">
+      <section className="bg-gradient-to-r from-[#0b5f5d] via-[#108280] to-[#0a3f3e] px-6 py-12 text-white">
+        <div className="mx-auto max-w-4xl text-center">
+          <p className="text-xs font-black uppercase tracking-widest text-white/70">
+            TrustBridge Zugang
+          </p>
 
-        <p className="mt-2 text-gray-500">
-          Bitte füllen Sie das Formular aus. Nach Prüfung erhalten Sie Ihre
-          Zugangsdaten per E-Mail.
-        </p>
+          <h1 className="mt-3 text-4xl font-black">
+            Registrierung beantragen
+          </h1>
 
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-          <input name="company" required placeholder="Firma *" className="w-full rounded-lg border p-3" />
-          <input name="contact_name" required placeholder="Ansprechpartner *" className="w-full rounded-lg border p-3" />
-          <input name="email" required type="email" placeholder="E-Mail *" className="w-full rounded-lg border p-3" />
-          <input name="phone" placeholder="Telefon" className="w-full rounded-lg border p-3" />
-          <input name="country" required placeholder="Land *" className="w-full rounded-lg border p-3" />
-          <input name="vat" placeholder="USt-IdNr. / Steuernummer" className="w-full rounded-lg border p-3" />
+          <p className="mx-auto mt-4 max-w-2xl text-white/80">
+            Bitte füllen Sie das Formular aus. Nach Prüfung erhalten Sie Ihre
+            Zugangsdaten per E-Mail.
+          </p>
+        </div>
+      </section>
 
-          <select name="business_type" className="w-full rounded-lg border p-3">
-            <option value="">Unternehmenstyp auswählen</option>
-            <option value="buyer">Käufer / Einkäufer</option>
-            <option value="supplier">Anbieter / Lieferant</option>
-            <option value="partner">Landespartner / Dienstleister</option>
-          </select>
+      <section className="mx-auto max-w-4xl px-6 py-10">
+        <div className="rounded-3xl border bg-white p-6 shadow-sm md:p-8">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="grid gap-4 md:grid-cols-2">
+              <Input name="company" required placeholder="Firma *" />
+              <Input
+                name="contact_name"
+                required
+                placeholder="Ansprechpartner *"
+              />
+              <Input name="email" required type="email" placeholder="E-Mail *" />
+              <Input name="phone" placeholder="Telefon" />
+              <Input name="country" required placeholder="Land *" />
+              <Input name="vat" placeholder="USt-IdNr. / Steuernummer" />
+            </div>
 
-          <textarea
-            name="message"
-            rows={4}
-            placeholder="Kurze Beschreibung Ihres Unternehmens / Bedarfs"
-            className="w-full rounded-lg border p-3"
-          />
+            <select
+              name="business_type"
+              required
+              className="w-full rounded-xl border p-3 text-sm outline-none focus:border-[#108280]"
+            >
+              <option value="">Unternehmenstyp auswählen *</option>
+              <option value="buyer">Käufer / Einkäufer</option>
+              <option value="supplier">Anbieter / Lieferant</option>
+              <option value="partner">Landespartner / Dienstleister</option>
+            </select>
 
-          <label className="flex gap-2 text-sm">
-            <input type="checkbox" required />
-            Ich stimme der Datenschutzerklärung zu *
-          </label>
+            <textarea
+              name="message"
+              rows={4}
+              placeholder="Kurze Beschreibung Ihres Unternehmens / Bedarfs"
+              className="w-full rounded-xl border p-3 text-sm outline-none focus:border-[#108280]"
+            />
 
-          <button
-            disabled={loading}
-            className="w-full rounded-xl bg-black py-4 font-black uppercase text-white disabled:opacity-50"
-          >
-            {loading ? "Wird gesendet..." : "Registrierung absenden"}
-          </button>
-        </form>
-      </div>
+            <label className="flex gap-3 rounded-2xl bg-slate-50 p-4 text-sm text-slate-600">
+              <input type="checkbox" required className="mt-1" />
+              <span>
+                Ich stimme der Datenschutzerklärung zu und bestätige, dass meine
+                Angaben zur Prüfung eines TrustBridge-Zugangs verwendet werden
+                dürfen. *
+              </span>
+            </label>
+
+            <button
+              disabled={loading}
+              className="w-full rounded-xl bg-slate-950 py-4 text-sm font-black uppercase tracking-wider text-white hover:bg-slate-800 disabled:opacity-50"
+            >
+              {loading ? "Wird gesendet..." : "Registrierung absenden"}
+            </button>
+          </form>
+        </div>
+      </section>
     </main>
+  );
+}
+
+function Input({
+  name,
+  placeholder,
+  required,
+  type = "text",
+}: {
+  name: string;
+  placeholder: string;
+  required?: boolean;
+  type?: string;
+}) {
+  return (
+    <input
+      name={name}
+      type={type}
+      required={required}
+      placeholder={placeholder}
+      className="w-full rounded-xl border p-3 text-sm outline-none focus:border-[#108280]"
+    />
   );
 }

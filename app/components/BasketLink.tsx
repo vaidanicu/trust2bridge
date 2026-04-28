@@ -22,7 +22,7 @@ export default function BasketCounter() {
       href="/request-basket"
       className="rounded-full bg-cyan-400 px-5 py-2 text-sm font-black text-black"
     >
-      Coș de cereri ({count})
+      Anfragekorb ansehen → ({count})
     </Link>
   );
 }
