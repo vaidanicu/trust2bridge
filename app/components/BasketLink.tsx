@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getBasket } from "@/lib/basket";
 
-export default function BasketCounter() {
+// Adăugăm dict și lang în lista de props
+export default function BasketCounter({ dict, lang }: { dict: any, lang: string }) {
   const [count, setCount] = useState(0);
 
   useEffect(() => {
@@ -19,10 +20,11 @@ export default function BasketCounter() {
 
   return (
     <Link
-      href="/request-basket"
-      className="rounded-full bg-cyan-400 px-5 py-2 text-sm font-black text-black"
+      href={`/${lang}/request-basket`} // Adăugăm prefixul de limbă
+      className="rounded-full bg-cyan-400 px-5 py-2 text-sm font-black text-black transition-transform hover:scale-105 active:scale-95"
     >
-      Anfragekorb ansehen → ({count})
+      {/* Folosim textul din dicționar */}
+      {dict.nav.basket_btn || "Basket"} ({count})
     </Link>
   );
 }

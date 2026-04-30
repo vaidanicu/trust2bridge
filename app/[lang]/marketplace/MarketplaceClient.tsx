@@ -1,25 +1,20 @@
 "use client";
-import AddToRequestButton from "../components/AddToRequestButton";
+import AddToRequestButton from "../../components/AddToRequestButton";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 
 const API = "https://trustbridgeb2b.com/backend/wp-json/trustbridge/v1";
 
-const countries = ["Österreich", "Ungarn", "Schweiz", "Deutschland", "Rumänien"];
-const priorities = [
-  "geprüfte Anbieter",
-  "schneller Lieferbeginn",
-  "Preis im Fokus",
-  "langfristige Partnerschaft",
-  "zertifizierte Qualität",
-];
-
-export default function MarketplacePage() {
+export default function MarketplacePage({ dict, lang }: { dict: any, lang: string }) {
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("");
   const [country, setCountry] = useState("");
+
+  // Folosim listele traduse din JSON
+  const countries = ["Österreich", "Ungarn", "Schweiz", "Deutschland", "Rumänien"];
+  const priorities = dict.marketplace.priorities || [];
 
   useEffect(() => {
     async function loadItems() {
@@ -33,7 +28,6 @@ export default function MarketplacePage() {
         setLoading(false);
       }
     }
-
     loadItems();
   }, []);
 
@@ -45,49 +39,46 @@ export default function MarketplacePage() {
 
       const matchesQuery = !query || text.includes(query.toLowerCase());
       const matchesCategory =
-  !category ||
-  item.category === category ||
-  item.type === category ||
-  (category === "Dienstleistung" &&
-    (item.category === "Dienstleistungen" || item.type === "service"));
+        !category ||
+        item.category === category ||
+        item.type === category ||
+        (category === "Dienstleistung" &&
+          (item.category === "Dienstleistungen" || item.type === "service"));
       const matchesCountry = !country || item.country === country;
 
       return matchesQuery && matchesCategory && matchesCountry;
     });
   }, [items, query, category, country]);
 
-  
-
   return (
     <main className="min-h-screen bg-[#f4f6f8] text-slate-900">
       <section className="bg-gradient-to-r from-[#0b5f5d] via-[#108280] to-[#0a3f3e] px-6 py-16 text-white">
         <div className="mx-auto max-w-7xl">
           <p className="text-sm font-black uppercase tracking-widest text-white/70">
-            TrustBridge Beschaffung
+            {dict.marketplace.badge}
           </p>
 
           <h1 className="mt-4 max-w-4xl text-4xl font-black leading-tight md:text-6xl">
-            Von unsicheren Kontakten zu sicheren Geschäften.
+            {dict.marketplace.hero_title}
           </h1>
 
           <p className="mt-6 max-w-3xl text-lg leading-8 text-white/85">
-            Finden Sie geprüfte Anbieter, Produkte und Dienstleistungen – oder
-            starten Sie eine geführte Anfrage, wenn Ihr Bedarf komplexer ist.
+            {dict.marketplace.hero_subtitle}
           </p>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link
-              href="/guided-request"
+              href={`/${lang}/offer-create`}
               className="rounded-xl bg-white px-6 py-4 text-center font-black uppercase text-[#0b5f5d] hover:bg-slate-100"
             >
-              Geführte Anfrage starten
+              {dict.marketplace.button_guided}
             </Link>
 
             <Link
-              href="/request-basket"
+              href={`/${lang}/request-basket`}
               className="rounded-xl border border-white/30 px-6 py-4 text-center font-black uppercase text-white hover:bg-white/10"
             >
-              Anfragekorb öffnen
+              {dict.marketplace.button_basket}
             </Link>
           </div>
         </div>
@@ -95,17 +86,17 @@ export default function MarketplacePage() {
 
       <section className="mx-auto max-w-7xl px-6 py-10">
         <div className="rounded-3xl border bg-white p-6 shadow-sm">
-          <h2 className="text-2xl font-black">Was möchten Sie beschaffen?</h2>
+          <h2 className="text-2xl font-black">{dict.marketplace.search_title}</h2>
 
           <p className="mt-2 text-slate-600">
-            Produkt, Dienstleistung oder Kategorie eingeben.
+            {dict.marketplace.search_desc}
           </p>
 
           <div className="mt-6 grid gap-3 md:grid-cols-[1fr_220px_220px]">
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="z. B. Sonnenblumenöl, Stückguttransport, Baustoffe…"
+              placeholder={dict.marketplace.search_placeholder}
               className="rounded-xl border p-4 outline-none focus:border-[#108280]"
             />
 
@@ -114,12 +105,10 @@ export default function MarketplacePage() {
               onChange={(e) => setCategory(e.target.value)}
               className="rounded-xl border p-4 outline-none focus:border-[#108280]"
             >
-              <option value="">Alle Kategorien</option>
+              <option value="">{dict.marketplace.all_categories}</option>
               <option value="Food">Food</option>
               <option value="Non-Food">Non-Food</option>
-              <option value="Dienstleistung">Dienstleistungen</option>
-              <option value="product">Produkte</option>
-              <option value="service">Services</option>
+              <option value="Dienstleistung">{dict.home.categories[7]}</option>
             </select>
 
             <select
@@ -127,11 +116,9 @@ export default function MarketplacePage() {
               onChange={(e) => setCountry(e.target.value)}
               className="rounded-xl border p-4 outline-none focus:border-[#108280]"
             >
-              <option value="">Alle Länder</option>
+              <option value="">{dict.marketplace.all_countries}</option>
               {countries.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
+                <option key={c} value={c}>{c}</option>
               ))}
             </select>
           </div>
@@ -141,35 +128,39 @@ export default function MarketplacePage() {
           <CategoryCard
             icon="🟢"
             title="Food"
-            text="Lebensmittel, Rohstoffe, Getränke, Frisch- und Tiefkühlware."
+            text={dict.marketplace.cat_food_text}
             onClick={() => setCategory("Food")}
+            btnText={dict.marketplace.view_offers}
           />
           <CategoryCard
             icon="🟡"
             title="Non-Food"
-            text="Baustoffe, Maschinen, technische Produkte, Restposten."
+            text={dict.marketplace.cat_nonfood_text}
             onClick={() => setCategory("Non-Food")}
+            btnText={dict.marketplace.view_offers}
           />
           <CategoryCard
             icon="🔵"
-            title="Dienstleistungen"
-            text="Transport, Logistik, Montage, Energie, Beratung."
+            title={dict.home.categories[7]}
+            text={dict.marketplace.cat_service_text}
             onClick={() => setCategory("Dienstleistung")}
+            btnText={dict.marketplace.view_offers}
           />
           <CategoryCard
             icon="🔴"
-            title="Auktionen"
-            text="Sonderposten, Projektmengen, zeitlich begrenzte Angebote."
-            onClick={() => alert("Auktionen kommen später.")}
+            title={dict.home.action_auction_title}
+            text={dict.home.action_auction_desc}
+            onClick={() => alert(dict.home.action_auction_desc)}
+            btnText={dict.marketplace.view_offers}
           />
         </div>
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[280px_1fr]">
           <aside className="h-fit rounded-3xl border bg-white p-6 shadow-sm">
-            <h3 className="text-xl font-black">Filtern Sie Ihre Suche</h3>
+            <h3 className="text-xl font-black">{dict.marketplace.filter_title}</h3>
 
             <div className="mt-6">
-              <p className="font-black">Wo möchten Sie beschaffen?</p>
+              <p className="font-black">{dict.marketplace.filter_where}</p>
               <div className="mt-3 space-y-2 text-sm">
                 {countries.map((c) => (
                   <button
@@ -186,15 +177,15 @@ export default function MarketplacePage() {
                   onClick={() => setCountry("")}
                   className="block w-full rounded-lg border px-3 py-2 text-left"
                 >
-                  ☐ in allen Ländern
+                  ☐ {dict.marketplace.all_countries}
                 </button>
               </div>
             </div>
 
             <div className="mt-6">
-              <p className="font-black">Was ist Ihnen wichtig?</p>
+              <p className="font-black">{dict.marketplace.filter_important}</p>
               <div className="mt-3 space-y-2 text-sm text-slate-600">
-                {priorities.map((p) => (
+                {priorities.map((p: string) => (
                   <div key={p}>☐ {p}</div>
                 ))}
               </div>
@@ -205,41 +196,36 @@ export default function MarketplacePage() {
             <div className="flex items-end justify-between gap-4">
               <div>
                 <p className="text-xs font-black uppercase tracking-wider text-[#108280]">
-                  Ergebnisse / Empfehlungen
+                  {dict.marketplace.results_label}
                 </p>
                 <h2 className="text-2xl font-black">
                   {loading
-                    ? "Angebote werden geladen..."
-                    : `${filteredItems.length} Angebote gefunden`}
+                    ? dict.marketplace.loading
+                    : `${filteredItems.length} ${dict.marketplace.results_found}`}
                 </h2>
               </div>
 
               <Link
-                href="/guided-request"
+                href={`/${lang}/guided-request`}
                 className="hidden rounded-xl bg-slate-950 px-5 py-3 text-sm font-black uppercase text-white hover:bg-slate-800 md:block"
               >
-                Nicht sicher? Geführte Anfrage
+                {dict.marketplace.not_sure_btn}
               </Link>
             </div>
 
             {loading ? (
               <div className="mt-6 rounded-3xl border bg-white p-8 text-slate-500">
-                Lade Angebote...
+                {dict.marketplace.loading}
               </div>
             ) : filteredItems.length === 0 ? (
               <div className="mt-6 rounded-3xl border bg-white p-8 text-center shadow-sm">
-                <h3 className="text-xl font-black">
-                  Kein passendes Angebot gefunden.
-                </h3>
-                <p className="mt-2 text-slate-500">
-                  Starten Sie eine geführte Anfrage. TrustBridge sucht passende
-                  Anbieter für Sie.
-                </p>
+                <h3 className="text-xl font-black">{dict.marketplace.no_results}</h3>
+                <p className="mt-2 text-slate-500">{dict.marketplace.hero_subtitle}</p>
                 <Link
-                  href="/guided-request"
+                  href={`/${lang}/guided-request`}
                   className="mt-5 inline-block rounded-xl bg-[#108280] px-6 py-3 font-black uppercase text-white"
                 >
-                  Geführte Anfrage starten
+                  {dict.marketplace.button_guided}
                 </Link>
               </div>
             ) : (
@@ -250,14 +236,10 @@ export default function MarketplacePage() {
                     className="overflow-hidden rounded-3xl border bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md"
                   >
                     {item.image ? (
-                      <img
-                        src={item.image}
-                        alt={item.title}
-                        className="h-48 w-full object-cover"
-                      />
+                      <img src={item.image} alt={item.title} className="h-48 w-full object-cover" />
                     ) : (
                       <div className="flex h-48 items-center justify-center bg-slate-100 text-slate-400">
-                        Kein Bild
+                        {dict.common.no_image}
                       </div>
                     )}
 
@@ -267,40 +249,37 @@ export default function MarketplacePage() {
                           <p className="text-xs font-black uppercase tracking-wider text-[#108280]">
                             {item.country || "-"} | {item.category || item.type || "-"}
                           </p>
-                          <h3 className="mt-2 text-xl font-black">
-                            {item.title}
-                          </h3>
+                          <h3 className="mt-2 text-xl font-black">{item.title}</h3>
                         </div>
 
                         <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-black text-orange-700">
                           {item.price_status === "request"
-                            ? "Preis auf Anfrage"
-                            : item.price_status || "auf Anfrage"}
+                            ? dict.common.price_on_request
+                            : item.price_status || dict.common.price_on_request}
                         </span>
                       </div>
 
                       <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-600">
-                        {item.description || "Keine Beschreibung vorhanden."}
+                        {item.description || dict.marketplace.no_description}
                       </p>
 
                       <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
-                        <Info label="Anbieter" value={item.supplier_name || "-"} />
+                        <Info label={dict.marketplace.info_supplier} value={item.supplier_name || "-"} />
                         <Info
-                          label="Mindestmenge"
+                          label={dict.marketplace.info_min_qty}
                           value={`${item.min_qty || "-"} ${item.unit || ""}`}
                         />
                       </div>
 
                       <div className="mt-6 flex gap-2">
-                       <div className="flex-1">
-  <AddToRequestButton item={item} />
-</div>
-
+                        <div className="flex-1">
+                          <AddToRequestButton item={item} dict={dict} lang={lang} />
+                        </div>
                         <Link
-                          href={`/marketplace/details?id=${item.id}`}
+                          href={`/${lang}/marketplace/details?id=${item.id}`}
                           className="rounded-xl border px-2 py-3 text-sm font-black uppercase hover:bg-slate-50"
                         >
-                          Details ansehen
+                          {dict.marketplace.details_btn}
                         </Link>
                       </div>
                     </div>
@@ -311,23 +290,15 @@ export default function MarketplacePage() {
           </section>
         </div>
 
+        {/* Footer section */}
         <div className="mt-10 rounded-3xl bg-slate-950 p-8 text-white">
-          <h2 className="text-3xl font-black">
-            Sind Sie nicht sicher, wie Sie suchen sollen?
-          </h2>
-
-          <p className="mt-4 max-w-3xl leading-8 text-white/75">
-            Wenn Ihr Bedarf komplex ist, mehrere Anbieter, Länder oder
-            Zusatzleistungen umfasst, empfehlen wir eine geführte Anfrage.
-            TrustBridge hilft Ihnen, passende Anbieter zu identifizieren,
-            Angebote vergleichbar zu machen und Risiken frühzeitig zu erkennen.
-          </p>
-
+          <h2 className="text-3xl font-black">{dict.marketplace.footer_title}</h2>
+          <p className="mt-4 max-w-3xl leading-8 text-white/75">{dict.marketplace.footer_text}</p>
           <Link
-            href="/guided-request"
+            href={`/${lang}/offer-create`}
             className="mt-6 inline-block rounded-xl bg-white px-6 py-4 font-black uppercase text-slate-950 hover:bg-slate-100"
           >
-            Geführte Anfrage starten
+            {dict.marketplace.button_guided}
           </Link>
         </div>
       </section>
@@ -335,27 +306,14 @@ export default function MarketplacePage() {
   );
 }
 
-function CategoryCard({
-  icon,
-  title,
-  text,
-  onClick,
-}: {
-  icon: string;
-  title: string;
-  text: string;
-  onClick: () => void;
-}) {
+function CategoryCard({ icon, title, text, onClick, btnText }: any) {
   return (
-    <button
-      onClick={onClick}
-      className="rounded-3xl border bg-white p-6 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-md"
-    >
+    <button onClick={onClick} className="rounded-3xl border bg-white p-6 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-md">
       <div className="text-3xl">{icon}</div>
       <h3 className="mt-4 text-xl font-black">{title}</h3>
       <p className="mt-2 text-sm leading-6 text-slate-600">{text}</p>
       <span className="mt-4 inline-block font-black text-[#108280]">
-        Angebote ansehen →
+        {btnText} →
       </span>
     </button>
   );

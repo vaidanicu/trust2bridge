@@ -1,9 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link"; // Folosim Link din Next.js pentru navigare rapidă
 import { addToBasket, getBasket } from "@/lib/basket";
 
-export default function AddToRequestButton({ item }: { item: any }) {
+// Adăugăm dict și lang în props
+export default function AddToRequestButton({ 
+  item, 
+  dict, 
+  lang 
+}: { 
+  item: any; 
+  dict: any; 
+  lang: string 
+}) {
   const [added, setAdded] = useState(false);
 
   useEffect(() => {
@@ -14,7 +24,6 @@ export default function AddToRequestButton({ item }: { item: any }) {
 
   const handleAdd = () => {
     if (added) return;
-
     addToBasket(item);
     setAdded(true);
   };
@@ -31,15 +40,16 @@ export default function AddToRequestButton({ item }: { item: any }) {
               : "bg-[#108280] text-white hover:bg-[#0d6b69]"
           }`}
       >
-        {added ? "✓ Bereits im Anfragekorb" : "In Anfragekorb"}
+        {/* Traducere din secțiunea marketplace sau common */}
+        {added ? `✓ ${dict.marketplace.added_to_basket}` : dict.marketplace.add_to_basket}
       </button>
 
-      <a
-        href="/request-basket"
+      <Link
+        href={`/${lang}/request-basket`}
         className="block w-full text-center text-sm font-bold text-[#108280] hover:underline"
       >
-        Anfragekorb ansehen →
-      </a>
+        {dict.nav.basket_btn} →
+      </Link>
     </div>
   );
 }
