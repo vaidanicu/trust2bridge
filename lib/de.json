@@ -1,0 +1,18 @@
+{
+  "item": {
+    "not_found": "Produkt existiert nicht.",
+    "back_to_marketplace": "Zurück zum Marketplace",
+    "description": "Beschreibung",
+    "article": "Artikel",
+    "price_on_request": "Preis auf Anfrage",
+    "country": "Land",
+    "moq": "Mindestmenge"
+  },
+  "offer": {
+    "title": "Angebot abgeben",
+    "price_placeholder": "Preis / Angebot *",
+    "delivery_placeholder": "Lieferzeit, z. B. 7-10 Tage",
+    "message_placeholder": "Nachricht / Bedingungen",
+    "button_send": "Angebot senden"
+  }
+}

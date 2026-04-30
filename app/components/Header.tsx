@@ -46,7 +46,7 @@ export default function Header() {
               </Link>
 
               <Link
-                href="/guided-request"
+                href="/offer-create"
                 className="group/item block rounded-lg px-4 py-2.5 transition-colors hover:bg-slate-50"
               >
                 <span className="block text-sm font-bold text-slate-900 group-hover/item:text-[#108280]">Suche</span>

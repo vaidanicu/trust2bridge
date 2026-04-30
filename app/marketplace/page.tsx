@@ -44,7 +44,12 @@ export default function MarketplacePage() {
       } ${item.country || ""}`.toLowerCase();
 
       const matchesQuery = !query || text.includes(query.toLowerCase());
-      const matchesCategory = !category || item.category === category || item.type === category;
+      const matchesCategory =
+  !category ||
+  item.category === category ||
+  item.type === category ||
+  (category === "Dienstleistung" &&
+    (item.category === "Dienstleistungen" || item.type === "service"));
       const matchesCountry = !country || item.country === country;
 
       return matchesQuery && matchesCategory && matchesCountry;
@@ -295,7 +300,7 @@ export default function MarketplacePage() {
                           href={`/marketplace/details?id=${item.id}`}
                           className="rounded-xl border px-2 py-3 text-sm font-black uppercase hover:bg-slate-50"
                         >
-                          Details
+                          Details ansehen
                         </Link>
                       </div>
                     </div>

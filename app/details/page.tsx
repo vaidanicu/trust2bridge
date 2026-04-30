@@ -1,14 +1,19 @@
 "use client";
-import AddToRequestButton from "../../components/AddToRequestButton";
-import { useEffect, useState } from "react";
+
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import AddToRequestButton from "../components/AddToRequestButton";
 
 const API = "https://trustbridgeb2b.com/backend/wp-json/trustbridge/v1";
 
-export default function MarketplaceDetailsPage() {
- const searchParams = useSearchParams();
-const id = searchParams.get("id");
+/**
+ * COMPONENTA DE CONȚINUT
+ * Conține toată logica paginii și folosește useSearchParams()
+ */
+function MarketplaceDetailsContent() {
+  const searchParams = useSearchParams();
+  const id = searchParams.get("id");
 
   const [item, setItem] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -35,9 +40,14 @@ const id = searchParams.get("id");
       }
     }
 
-    if (id) loadItem();
+    if (id) {
+      loadItem();
+    } else {
+      setLoading(false);
+    }
   }, [id]);
 
+  // Funcție pentru adăugare manuală (dacă nu se folosește doar AddToRequestButton)
   function addToRequestBasket() {
     if (!item) return;
 
@@ -71,7 +81,7 @@ const id = searchParams.get("id");
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-[#f4f6f8] p-10">
+      <main className="min-h-screen bg-[#f4f6f8] p-10 font-black">
         Lade Details...
       </main>
     );
@@ -82,7 +92,6 @@ const id = searchParams.get("id");
       <main className="min-h-screen bg-[#f4f6f8] px-6 py-16">
         <div className="mx-auto max-w-3xl rounded-3xl border bg-white p-10 text-center shadow-sm">
           <h1 className="text-2xl font-black">Angebot nicht gefunden.</h1>
-
           <Link
             href="/marketplace"
             className="mt-6 inline-block rounded-xl bg-[#108280] px-6 py-3 font-black text-white"
@@ -198,7 +207,7 @@ const id = searchParams.get("id");
               <DetailRow label="Status" value={item.status || "-"} />
             </div>
 
-            <div className="flex-1">
+            <div className="mt-6 flex-1">
              <AddToRequestButton item={item} />
            </div>
 
@@ -233,6 +242,21 @@ const id = searchParams.get("id");
   );
 }
 
+/**
+ * EXPORTUL PRINCIPAL
+ * Înfășurat în Suspense pentru a permite build-ul static.
+ */
+export default function MarketplaceDetailsPage() {
+  return (
+    <Suspense fallback={<main className="min-h-screen bg-[#f4f6f8] p-10 font-black">Lade Seite...</main>}>
+      <MarketplaceDetailsContent />
+    </Suspense>
+  );
+}
+
+/**
+ * COMPONENTĂ DE AJUTOR
+ */
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between gap-4 border-b pb-2">

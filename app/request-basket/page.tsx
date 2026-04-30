@@ -73,11 +73,17 @@ export default function RequestBasketPage() {
 
       const data = await res.json();
 
-      if (data.success) {
-        alert("Ihre Anfrage wurde erfolgreich gesendet! Anfrage-ID: " + data.request_id);
-        localStorage.removeItem("trustbridge_basket");
-        setItems([]);
-      } else {
+     if (data.success) {
+  alert("Ihre Anfrage wurde erfolgreich gesendet! Anfrage-ID: " + data.request_id);
+
+  localStorage.removeItem("trustbridge_request_basket");
+  localStorage.removeItem("trustbridge_basket");
+
+  window.dispatchEvent(new Event("trustbridge-basket-updated"));
+
+  setItems([]);
+  window.location.href = "/dashboard";
+} else {
         alert(data.message || "Fehler beim Senden der Anfrage.");
       }
     } catch {
@@ -121,7 +127,7 @@ export default function RequestBasketPage() {
                 href="/marketplace"
                 className="rounded-xl border px-4 py-3 text-xs font-black uppercase text-slate-700 hover:bg-slate-50"
               >
-                Weitere Produkte
+                Weitere Angebote
               </Link>
             </div>
 
@@ -131,7 +137,7 @@ export default function RequestBasketPage() {
                   Ihr Anfragekorb ist leer.
                 </h3>
                 <p className="mt-2 text-sm text-slate-500">
-                  Wählen Sie Produkte im Marketplace aus und senden Sie danach
+                  Wählen Sie Angebote im Marktplatz aus und senden Sie danach
                   eine gebündelte Anfrage.
                 </p>
 
@@ -139,7 +145,7 @@ export default function RequestBasketPage() {
                   href="/marketplace"
                   className="mt-5 inline-block rounded-xl bg-[#108280] px-6 py-3 text-sm font-black uppercase text-white hover:bg-[#0d6b69]"
                 >
-                  Zum Marketplace
+                  Zum Marktplatz
                 </Link>
               </div>
             ) : (

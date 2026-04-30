@@ -1,0 +1,18 @@
+{
+  "item": {
+    "not_found": "A termék nem létezik.",
+    "back_to_marketplace": "Vissza a Marketplace-hez",
+    "description": "Leírás",
+    "article": "Cikk",
+    "price_on_request": "Ár kérésre",
+    "country": "Ország",
+    "moq": "Minimum rendelési mennyiség"
+  },
+  "offer": {
+    "title": "Ajánlat küldése",
+    "price_placeholder": "Ár / Ajánlat *",
+    "delivery_placeholder": "Szállítási idő (pl. 7-10 nap)",
+    "message_placeholder": "Üzenet / Feltételek",
+    "button_send": "Ajánlat elküldése"
+  }
+}
