@@ -4,13 +4,13 @@ import ProductGallery from "../../../components/ProductGallery";
 import { getDictionary } from "@/lib/dictionary";
 
 // Forțăm Next.js să genereze pagini noi la cerere dacă nu au fost create la build
-export const dynamicParams = true;
+export const dynamicParams = false;
 
 async function getItem(id: string) {
   try {
     const res = await fetch(
       `https://trustbridgeb2b.com/backend/wp-json/trustbridge/v1/items/${id}`,
-      { next: { revalidate: 3600 } } // Cache valid o oră
+      { cache: "force-cache" }
     );
     if (!res.ok) return null;
     return res.json();
@@ -24,27 +24,44 @@ async function getItem(id: string) {
 export async function generateStaticParams() {
   try {
     const res = await fetch("https://trustbridgeb2b.com/backend/wp-json/trustbridge/v1/items", {
-      next: { revalidate: 0 } 
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      },
+      next: { revalidate: 0 } // Forțează date proaspete la build
     });
-    
-    if (!res.ok) return [];
+
+    if (!res.ok) {
+      console.error(`Eroare API: Status ${res.status} pe ${res.url}`);
+      return [];
+    }
+
     const items = await res.json();
+    
+    // DEBUG: Verifică structura exactă a datelor
+    console.log("Date primite de la API (primele 2):", JSON.stringify(items.slice(0, 2), null, 2));
+
+    if (!Array.isArray(items)) {
+      console.error("API-ul nu a returnat un array!");
+      return [];
+    }
+
     const locales = ['de', 'ro', 'hu'];
-
-    if (!Array.isArray(items)) return [];
-
-    return locales.flatMap((lang) =>
+    const paths = locales.flatMap((lang) =>
       items.map((item: any) => ({
         lang: lang,
-        id: String(item.id),
+        id: String(item.id || item.ID), // Unele plugin-uri WP folosesc ID mare
       }))
     );
+
+    console.log(`Build: Generăm ${paths.length} pagini (Limbi x Produse).`);
+    return paths;
   } catch (error) {
-    console.error("Build static params error:", error);
+    console.error("Eroare fatală la fetch in build:", error);
     return [];
   }
 }
-
 // ─── COMPONENTA PRINCIPALĂ ───
 export default async function ItemPage({
   params,

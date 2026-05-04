@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: "TrustBridge B2B",
   description: "B2B Request Basket Platform",
 };
-
+export const dynamicParams = false;
 // Această funcție este CRUCIALĂ pentru output: export
 export async function generateStaticParams() {
   return [{ lang: 'de' }, { lang: 'ro' }, { lang: 'hu' }];
