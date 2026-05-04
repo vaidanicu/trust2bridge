@@ -3,11 +3,14 @@ import AddToRequestButton from "../../../components/AddToRequestButton";
 import ProductGallery from "../../../components/ProductGallery";
 import { getDictionary } from "@/lib/dictionary";
 
+// Forțăm Next.js să genereze pagini noi la cerere dacă nu au fost create la build
+export const dynamicParams = true;
+
 async function getItem(id: string) {
   try {
     const res = await fetch(
       `https://trustbridgeb2b.com/backend/wp-json/trustbridge/v1/items/${id}`,
-      { next: { revalidate: 3600 } }
+      { next: { revalidate: 3600 } } // Cache valid o oră
     );
     if (!res.ok) return null;
     return res.json();
@@ -17,16 +20,19 @@ async function getItem(id: string) {
   }
 }
 
-// Generăm rutele pentru TOATE limbile și TOATE produsele
+// ─── GENERARE PARAMETRI STATICI (PENTRU BUILD) ───
 export async function generateStaticParams() {
   try {
-    const res = await fetch("https://trustbridgeb2b.com/backend/wp-json/trustbridge/v1/items");
+    const res = await fetch("https://trustbridgeb2b.com/backend/wp-json/trustbridge/v1/items", {
+      next: { revalidate: 0 } 
+    });
+    
+    if (!res.ok) return [];
     const items = await res.json();
     const locales = ['de', 'ro', 'hu'];
 
     if (!Array.isArray(items)) return [];
 
-    // Creează o rută pentru fiecare combinație limbă-produs
     return locales.flatMap((lang) =>
       items.map((item: any) => ({
         lang: lang,
@@ -34,10 +40,12 @@ export async function generateStaticParams() {
       }))
     );
   } catch (error) {
+    console.error("Build static params error:", error);
     return [];
   }
 }
 
+// ─── COMPONENTA PRINCIPALĂ ───
 export default async function ItemPage({
   params,
 }: {
@@ -47,14 +55,16 @@ export default async function ItemPage({
   const dict = await getDictionary(lang as 'de' | 'ro' | 'hu');
   const item = await getItem(id);
 
+  // GESTIONARE PRODUS NEEXISTENT
   if (!item || item.code === "not_found") {
     return (
-      <main className="min-h-screen bg-[#f4f6f8] px-6 py-20">
-        <div className="mx-auto max-w-3xl rounded-2xl bg-white p-8 text-center shadow-sm">
-          <h1 className="text-2xl font-black">{dict.item_details.not_found_title}</h1>
+      <main className="min-h-screen bg-[#f4f6f8] px-6 py-20 flex items-center justify-center">
+        <div className="max-w-md w-full rounded-[2rem] border-2 border-slate-900 bg-white p-10 text-center shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+          <h1 className="text-3xl font-black uppercase italic italic">{dict.item_details.not_found_title}</h1>
+          <p className="mt-4 text-slate-500 font-bold">Acest produs nu mai este disponibil sau a fost mutat.</p>
           <Link
             href={`/${lang}/marketplace`}
-            className="mt-6 inline-block rounded-xl bg-[#108280] px-6 py-3 font-black text-white"
+            className="mt-8 inline-block w-full rounded-2xl border-2 border-slate-900 bg-[#108280] px-6 py-4 font-black uppercase tracking-widest text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-[#0d6b69] transition-all"
           >
             {dict.item_details.back_to_marketplace}
           </Link>
@@ -64,32 +74,41 @@ export default async function ItemPage({
   }
 
   return (
-    <main className="min-h-screen bg-[#f4f6f8] text-slate-900">
-      {/* TOP BAR */}
-      <section className="border-b bg-white">
-        <div className="mx-auto max-w-7xl px-6 py-5">
+    <main className="min-h-screen bg-[#f4f6f8] text-slate-900 font-sans pb-20">
+      {/* NAVIGATION BAR */}
+      <nav className="border-b-2 border-slate-900 bg-white sticky top-0 z-30">
+        <div className="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between">
           <Link
             href={`/${lang}/marketplace`}
-            className="text-sm font-bold text-[#108280] hover:underline"
+            className="group flex items-center gap-2 text-sm font-black uppercase tracking-tighter text-slate-900"
           >
-            ← {dict.item_details.back_to_marketplace}
+            <span className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-slate-900 bg-[#108280] text-white transition-transform group-hover:-translate-x-1">←</span>
+            {dict.item_details.back_to_marketplace}
           </Link>
+          <div className="hidden md:block text-[10px] font-black uppercase text-slate-400">
+            TrustBridge B2B Network • Product ID: {item.internal_id || item.id}
+          </div>
         </div>
-      </section>
+      </nav>
 
-      {/* PRODUCT AREA */}
-      <section className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-6 py-10 lg:grid-cols-[1fr_420px]">
+      {/* MAIN CONTENT GRID */}
+      <section className="mx-auto grid max-w-7xl grid-cols-1 gap-10 px-6 py-12 lg:grid-cols-[1fr_420px]">
         
-        {/* LEFT SIDE */}
-        <div className="space-y-6">
-          <div className="rounded-3xl border bg-white p-4 shadow-sm">
+        {/* SIDE STÂNGA: IMAGINI ȘI DESCRIERE */}
+        <div className="space-y-10">
+          {/* GALERIE FOTO */}
+          <div className="overflow-hidden rounded-[2.5rem] border-2 border-slate-900 bg-white p-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
             <ProductGallery mainImage={item.image} gallery={item.gallery} />
           </div>
 
-          <div className="rounded-3xl border bg-white p-7 shadow-sm">
-            <h2 className="text-2xl font-black">{dict.item_details.description_label}</h2>
+          {/* DESCRIERE DETALIATĂ */}
+          <div className="rounded-[2.5rem] border-2 border-slate-900 bg-white p-10 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+            <div className="mb-6 flex items-center gap-4">
+              <h2 className="text-3xl font-black uppercase italic tracking-tight">{dict.item_details.description_label}</h2>
+              <div className="h-1 flex-1 bg-slate-900/5"></div>
+            </div>
             <div
-              className="prose prose-slate mt-4 max-w-none text-slate-600"
+              className="prose prose-slate max-w-none text-lg leading-relaxed text-slate-700 font-medium"
               dangerouslySetInnerHTML={{
                 __html: item.description || dict.item_details.no_description,
               }}
@@ -97,78 +116,80 @@ export default async function ItemPage({
           </div>
         </div>
 
-        {/* RIGHT SIDE */}
-        <aside className="h-fit space-y-6 lg:sticky lg:top-6">
-          <div className="rounded-3xl border bg-white p-7 shadow-sm">
-            <p className="text-xs font-black uppercase tracking-wider text-[#108280]">
-              TrustBridge B2B {dict.item_details.article_label}
-            </p>
-
-            <h1 className="mt-3 text-3xl font-black leading-tight text-slate-950">
-              {item.title}
-            </h1>
-
-            <div className="mt-5 flex flex-wrap gap-2">
-              <span className="rounded-full bg-[#108280]/10 px-3 py-1 text-xs font-black text-[#108280]">
-                {item.category || "B2B"}
+        {/* SIDE DREAPTA: ACTIONS & INFO (STICKY) */}
+        <aside className="h-fit space-y-8 lg:sticky lg:top-24">
+          <div className="rounded-[2.5rem] border-2 border-slate-900 bg-white p-10 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+            <div className="space-y-1">
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#108280]">
+                TrustBridge Verified Listing
               </span>
-              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-600">
-                {item.country || dict.common.not_specified}
+              <h1 className="text-4xl font-black leading-[1.1] tracking-tight text-slate-950 italic uppercase">
+                {item.title}
+              </h1>
+            </div>
+
+            {/* BADGES */}
+            <div className="mt-6 flex flex-wrap gap-2">
+              <span className="rounded-xl border-2 border-slate-900 bg-[#108280] px-4 py-1.5 text-xs font-black uppercase text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                {item.category || "General"}
               </span>
-              <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-black text-orange-600">
-                {dict.common.price_on_request}
+              <span className="rounded-xl border-2 border-slate-900 bg-white px-4 py-1.5 text-xs font-black uppercase text-slate-900 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                📍 {item.country || dict.common.not_specified}
               </span>
             </div>
 
-            <div className="mt-7 rounded-2xl bg-[#f4f6f8] p-5">
-              <div className="grid gap-4 text-sm">
-                <div className="flex justify-between gap-4">
-                  <span className="text-slate-500">{dict.common.country}</span>
-                  <strong>{item.country || "-"}</strong>
-                </div>
-                <div className="flex justify-between gap-4">
-                  <span className="text-slate-500">{dict.common.category}</span>
-                  <strong>{item.category || dict.common.general}</strong>
-                </div>
-                <div className="flex justify-between gap-4">
-                  <span className="text-slate-500">{dict.item_details.price_status}</span>
-                  <strong>
-                    {item.price_status === "request"
-                      ? dict.common.price_on_request
-                      : item.price_status || dict.common.price_on_request}
-                  </strong>
-                </div>
-                <div className="flex justify-between gap-4">
-                  <span className="text-slate-500">{dict.marketplace.info_min_qty}</span>
-                  <strong>{item.min_qty} {item.unit || ""}</strong>
-                </div>
-              </div>
+            {/* SPECIFICAȚII TEHNICE */}
+            <div className="mt-10 space-y-4 rounded-3xl border-2 border-slate-900 bg-slate-50 p-6">
+              <SpecRow label={dict.common.country} value={item.country || "-"} />
+              <SpecRow label={dict.common.category} value={item.category || "-"} />
+              <SpecRow 
+                label={dict.item_details.price_status} 
+                value={item.price_status === "request" ? dict.common.price_on_request : item.price_status} 
+                highlight 
+              />
+              <SpecRow label={dict.marketplace.info_min_qty} value={`${item.min_qty} ${item.unit || ""}`} />
             </div>
 
-            <div className="mt-6">
+            {/* BUTON ADĂUGARE ÎN COȘ */}
+            <div className="mt-8">
               <AddToRequestButton item={item} dict={dict} lang={lang} />
             </div>
 
-            <p className="mt-4 text-xs leading-5 text-slate-500">
+            <p className="mt-6 text-center text-[10px] font-bold leading-relaxed text-slate-400 uppercase tracking-tighter">
               {dict.item_details.basket_help_text}
             </p>
           </div>
 
-          <div className="rounded-3xl border bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-black">{dict.item_details.benefits_title}</h2>
-            <div className="mt-5 space-y-4">
-              <div className="rounded-2xl bg-[#108280]/10 p-4">
-                <h3 className="font-black text-[#108280]">{dict.marketplace.priorities[0]}</h3>
-                <p className="mt-1 text-sm text-slate-600">{dict.item_details.benefit_1_desc}</p>
-              </div>
-              <div className="rounded-2xl bg-slate-100 p-4">
-                <h3 className="font-black">{dict.item_details.benefit_2_title}</h3>
-                <p className="mt-1 text-sm text-slate-600">{dict.item_details.benefit_2_desc}</p>
-              </div>
+          {/* BENEFICII BOX */}
+          <div className="rounded-[2.5rem] border-2 border-slate-900 bg-slate-950 p-8 text-white shadow-[8px_8px_0px_0px_rgba(16,130,128,1)]">
+            <h2 className="text-xl font-black uppercase italic tracking-tight">{dict.item_details.benefits_title}</h2>
+            <div className="mt-6 space-y-6">
+              <BenefitItem title={dict.marketplace.priorities[0]} desc={dict.item_details.benefit_1_desc} />
+              <BenefitItem title={dict.item_details.benefit_2_title} desc={dict.item_details.benefit_2_desc} />
             </div>
           </div>
         </aside>
       </section>
     </main>
+  );
+}
+
+// ─── HELPERS ───
+
+function SpecRow({ label, value, highlight = false }: any) {
+  return (
+    <div className="flex items-center justify-between gap-4 border-b border-slate-200 pb-3 last:border-0 last:pb-0">
+      <span className="text-[10px] font-black uppercase text-slate-400">{label}</span>
+      <span className={`text-sm font-black ${highlight ? "text-[#108280]" : "text-slate-900"}`}>{value}</span>
+    </div>
+  );
+}
+
+function BenefitItem({ title, desc }: any) {
+  return (
+    <div className="space-y-1">
+      <h3 className="text-sm font-black uppercase text-[#108280]">{title}</h3>
+      <p className="text-xs font-medium text-slate-400 leading-relaxed">{desc}</p>
+    </div>
   );
 }

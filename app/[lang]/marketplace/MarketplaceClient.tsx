@@ -276,11 +276,11 @@ export default function MarketplacePage({ dict, lang }: { dict: any, lang: strin
                           <AddToRequestButton item={item} dict={dict} lang={lang} />
                         </div>
                         <Link
-                          href={`/${lang}/marketplace/details?id=${item.id}`}
-                          className="rounded-xl border px-2 py-3 text-sm font-black uppercase hover:bg-slate-50"
-                        >
-                          {dict.marketplace.details_btn}
-                        </Link>
+  href={`/${lang}/details?id=${item.id}`} // Elimină "/marketplace" din mijloc
+  className="rounded-xl border px-2 py-3 text-sm font-black uppercase hover:bg-slate-50"
+>
+  {dict.marketplace.details_btn}
+</Link>
                       </div>
                     </div>
                   </article>

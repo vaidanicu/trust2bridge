@@ -38,8 +38,6 @@ const translations: any = {
     no_regs_desc: "Sobald sich ein Unternehmen registriert, erscheint es hier.",
     no_reqs: "Noch keine Anfragen vorhanden.",
     no_reqs_desc: "Sobald Anfragen vorhanden sind, erscheinen sie hier.",
-
-    // Table Headers
     t_product: "Produkt",
     t_supplier: "Anbieter",
     t_status: "Status",
@@ -51,15 +49,11 @@ const translations: any = {
     t_contact: "Kontakt",
     t_email: "E-Mail",
     t_type: "Typ",
-
-    // Buttons / Actions
     btn_details: "PRÜFEN / DETAILS",
     btn_approve: "Freigeben",
     btn_delete: "Löschen",
     btn_reject: "Ablehnen",
     btn_open: "Anfrage öffnen",
-
-    // Modal
     m_gallery: "Galerie Foto",
     m_no_images: "Keine Bilder",
     m_desc: "Detaillierte Beschreibung",
@@ -72,8 +66,6 @@ const translations: any = {
     m_on_request: "Auf Anfrage",
     m_approve_prod: "PRODUKT FREIGEBEN (APPROVE)",
     m_delete_prod: "PRODUKT LÖSCHEN (DELETE)",
-
-    // Statuses
     s_live: "Live",
     s_waiting: "Wartend",
     s_active: "Aktiv",
@@ -85,8 +77,6 @@ const translations: any = {
     s_offer_rec: "Angebot erhalten",
     s_completed: "Abgeschlossen",
     s_rejected: "Abgelehnt",
-
-    // Alerts
     confirm_delete: "Produkt unwiderruflich löschen?",
     alert_reg_approved: "Registrierung genehmigt.",
     alert_reg_rejected: "Registrierung abgelehnt.",
@@ -125,7 +115,6 @@ const translations: any = {
     no_regs_desc: "A regisztrált cégek itt fognak megjelenni.",
     no_reqs: "Jelenleg nincsenek kérések.",
     no_reqs_desc: "A beérkező kérések itt fognak megjelenni.",
-
     t_product: "Termék",
     t_supplier: "Beszállító",
     t_status: "Állapot",
@@ -137,13 +126,11 @@ const translations: any = {
     t_contact: "Kapcsolattartó",
     t_email: "E-mail",
     t_type: "Típus",
-
     btn_details: "ELLENŐRZÉS / RÉSZLETEK",
     btn_approve: "Jóváhagyás",
     btn_delete: "Törlés",
     btn_reject: "Elutasítás",
     btn_open: "Megnyitás",
-
     m_gallery: "Fotógaléria",
     m_no_images: "Nincsenek képek",
     m_desc: "Részletes leírás",
@@ -156,7 +143,6 @@ const translations: any = {
     m_on_request: "Ajánlat alapján",
     m_approve_prod: "TERMÉK JÓVÁHAGYÁSA (APPROVE)",
     m_delete_prod: "TERMÉK TÖRLÉSE (DELETE)",
-
     s_live: "Élő",
     s_waiting: "Várakozik",
     s_active: "Aktív",
@@ -168,7 +154,6 @@ const translations: any = {
     s_offer_rec: "Ajánlat beérkezett",
     s_completed: "Befejezve",
     s_rejected: "Elutasítva",
-
     confirm_delete: "Véglegesen törli a terméket?",
     alert_reg_approved: "Regisztráció jóváhagyva.",
     alert_reg_rejected: "Regisztráció elutasítva.",
@@ -207,7 +192,6 @@ const translations: any = {
     no_regs_desc: "Companiile înregistrate vor apărea aici.",
     no_reqs: "Nu există cereri momentan.",
     no_reqs_desc: "Cererile primite vor apărea aici.",
-
     t_product: "Produs",
     t_supplier: "Furnizor",
     t_status: "Status",
@@ -219,13 +203,11 @@ const translations: any = {
     t_contact: "Contact",
     t_email: "Email",
     t_type: "Tip",
-
     btn_details: "VERIFICĂ / DETALII",
     btn_approve: "Aprobă",
     btn_delete: "Șterge",
     btn_reject: "Respinge",
     btn_open: "Deschide cererea",
-
     m_gallery: "Galerie Foto",
     m_no_images: "Fără imagini",
     m_desc: "Descriere detaliată",
@@ -238,7 +220,6 @@ const translations: any = {
     m_on_request: "La cerere",
     m_approve_prod: "APROBĂ PRODUSUL",
     m_delete_prod: "ȘTERGE PRODUSUL",
-
     s_live: "Activ",
     s_waiting: "În așteptare",
     s_active: "Activ",
@@ -250,7 +231,6 @@ const translations: any = {
     s_offer_rec: "Ofertă primită",
     s_completed: "Finalizat",
     s_rejected: "Respins",
-
     confirm_delete: "Ștergeți produsul definitiv?",
     alert_reg_approved: "Înregistrare aprobată.",
     alert_reg_rejected: "Înregistrare respinsă.",
@@ -579,6 +559,58 @@ export default function DashboardPage(props: any) {
             </div>
           )}
         </div>
+
+        {/* ─── SECȚIUNEA SUB-ANFRAGEN (SUB-CERERI) ─── */}
+        {(isAdmin || isSupplier) && subRequests.length > 0 && (
+          <div className="mb-10 rounded-[2.5rem] border border-slate-100 bg-white p-8 shadow-xl">
+            <div className="mb-6">
+              <p className="text-xs font-black uppercase tracking-wider text-orange-600">
+                {dict.sub_reqs_title}
+              </p>
+              <h2 className="text-2xl font-black">{dict.sub_reqs_title}</h2>
+            </div>
+            
+            <div className="overflow-x-auto rounded-2xl border">
+              <table className="w-full min-w-[800px] text-left text-sm">
+                <thead className="bg-slate-800 text-white">
+                  <tr>
+                    <th className="p-4 font-black text-[10px] uppercase">{dict.t_id}</th>
+                    <th className="p-4 font-black text-[10px] uppercase">{dict.t_date}</th>
+                    <th className="p-4 font-black text-[10px] uppercase">Parent ID</th>
+                    <th className="p-4 font-black text-[10px] uppercase">{dict.t_company}</th>
+                    <th className="p-4 font-black text-[10px] uppercase">{dict.t_status}</th>
+                    <th className="p-4 font-black text-[10px] uppercase">{dict.t_action}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y bg-white">
+                  {subRequests.map((subReq: any) => (
+                    <tr key={subReq.id} className="hover:bg-slate-50/50 transition">
+                      <td className="p-4 font-black">#{subReq.id}</td>
+                      <td className="p-4 text-slate-600">{subReq.date || "-"}</td>
+                      <td className="p-4">
+                        <span className="bg-slate-100 px-2 py-1 rounded text-[10px] font-bold">
+                          #{subReq.parent_request}
+                        </span>
+                      </td>
+                      <td className="p-4 font-bold">{subReq.company || "-"}</td>
+                      <td className="p-4">
+                        <StatusBadge status={subReq.status} dict={dict} />
+                      </td>
+                      <td className="p-4">
+                        <Link 
+                          href={`/${lang}/dashboard/requests?id=${subReq.id}`} 
+                          className="inline-block bg-slate-100 px-4 py-2 rounded-xl text-xs font-black text-slate-600 hover:bg-[#108280] hover:text-white transition"
+                        >
+                          {dict.btn_open}
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
 
         {/* ADMIN: REGISTRATIONS */}
         {isAdmin && (
