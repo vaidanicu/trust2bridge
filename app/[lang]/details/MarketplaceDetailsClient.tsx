@@ -1,190 +1,185 @@
 "use client";
-import AddToRequestButton from "../../components/AddToRequestButton";
-import { useEffect, useState } from "react";
+
+import { useEffect, useState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import AddToRequestButton from "../../components/AddToRequestButton";
+import { formatConvertedPrice } from "@/lib/currency";
 
-const API = "https://trustbridgeb2b.com/backend/wp-json/trustbridge/v1";
+const API_BASE_URL = "https://trustbridgeb2b.com/backend/wp-json/trustbridge/v1";
 
-export default function MarketplaceDetailsClient({ item: initialItem, dict, lang }: { item?: any; dict: any; lang: string }) {
+interface MarketplaceDetailsProps {
+  item?: any;
+  dict: any;
+  lang: string;
+}
+
+export default function MarketplaceDetailsClient({ item: initialItem, dict, lang }: MarketplaceDetailsProps) {
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
 
-  // Redenumim starea locală pentru a evita conflictul cu parametrul "item"
-  const [fetchedItem, setFetchedItem] = useState<any>(initialItem);
-  const [loading, setLoading] = useState(!initialItem);
+  const [item, setItem] = useState<any>(initialItem);
+  const [isLoading, setIsLoading] = useState(!initialItem);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function loadItem() {
-      if (!id) return;
+    const fetchItemDetails = async () => {
+      if (!id || (initialItem && initialItem.id === id)) {
+        setIsLoading(false);
+        return;
+      }
+
       try {
-        const res = await fetch(`${API}/items/${id}`, {
+        setIsLoading(true);
+        const response = await fetch(`${API_BASE_URL}/items/${id}`, {
           cache: "no-store",
         });
 
-        const data = await res.json();
+        if (!response.ok) throw new Error("Failed to fetch item");
 
+        const data = await response.json();
+        
         if (data?.code) {
-          setFetchedItem(null);
+          setItem(null);
         } else {
-          setFetchedItem(data);
+          setItem(data);
         }
-      } catch (error) {
-        console.error("Item details error:", error);
-        setFetchedItem(null);
+      } catch (err) {
+        console.error("Item details error:", err);
+        setError("Error loading details");
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
-    }
+    };
 
-    // Încărcăm datele doar dacă nu le avem deja din Server Component sau dacă ID-ul se schimbă
-    if (id && (!initialItem || initialItem.id !== id)) {
-      loadItem();
-    } else {
-        setLoading(false);
-    }
+    fetchItemDetails();
   }, [id, initialItem]);
 
-  if (loading) {
-    return (
-      <main className="min-h-screen bg-[#f4f6f8] flex items-center justify-center font-black uppercase italic text-[#108280]">
-        {dict.common?.loading || "Lade Details..."}
-      </main>
-    );
+  // Formatare preț memorată pentru performanță
+  const priceDisplay = useMemo(() => {
+  const target = item || initialItem;
+  if (!target) return "";
+
+  const priceValue = target.price || target.tb_price;
+  const convertedPrice = formatConvertedPrice(priceValue, lang);
+
+  if (convertedPrice) {
+    return convertedPrice;
   }
 
-  // Folosim fetchedItem (care conține fie datele inițiale, fie cele noi de la fetch)
-  const displayItem = fetchedItem || initialItem;
+  return target.price_status === "request"
+    ? dict.common?.price_on_request || "Preis auf Anfrage"
+    : target.price_status || dict.common?.price_on_request || "Preis auf Anfrage";
+}, [item, initialItem, dict, lang]);
 
-  if (!displayItem) {
-    return (
-      <main className="min-h-screen bg-[#f4f6f8] px-6 py-16">
-        <div className="mx-auto max-w-3xl rounded-3xl border-2 border-slate-900 bg-white p-10 text-center shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-          <h1 className="text-2xl font-black uppercase italic">
-            {dict.item_details?.not_found_title || "Angebot nicht gefunden."}
-          </h1>
+  if (isLoading) return <LoadingState dict={dict} />;
+  
+  if (error || (!item && !initialItem)) return <NotFoundState dict={dict} lang={lang} />;
 
-          <Link
-            href={`/${lang}/marketplace`}
-            className="mt-6 inline-block rounded-xl bg-[#108280] px-6 py-3 font-black text-white border-2 border-slate-900 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-[#0d6b69]"
-          >
-            {dict.item_details?.back_to_marketplace || "Zurück zum Marketplace"}
-          </Link>
-        </div>
-      </main>
-    );
-  }
+  const displayItem = item || initialItem;
 
   return (
-    <main className="min-h-screen bg-[#f4f6f8] text-slate-900">
-      <section className="bg-[#00695c] px-6 py-12 text-white border-b-2 border-slate-900">
+    <main className="min-h-screen bg-[#f8fafc] text-slate-900 pb-20">
+      {/* Header Secțiune */}
+      <header className="bg-[#00695c] px-6 py-14 text-white border-b-4 border-slate-900">
         <div className="mx-auto max-w-7xl">
           <Link
             href={`/${lang}/marketplace`}
-            className="text-sm font-bold text-white/80 hover:text-white"
+            className="group inline-flex items-center text-sm font-bold text-white/80 hover:text-white transition-colors"
           >
-            ← {dict.item_details?.back_to_marketplace || "Zurück zum Marktplatz"}
+            <span className="mr-2 transition-transform group-hover:-translate-x-1">←</span>
+            {dict.item_details?.back_to_marketplace || "Zurück zum Marktplatz"}
           </Link>
 
-          <p className="mt-6 text-xs font-black uppercase tracking-wider text-white/70">
-            TrustBridge {dict.marketplace?.results_label || "Angebotsdetails"}
-          </p>
-
-          <h1 className="mt-2 max-w-4xl text-4xl font-black uppercase italic">
-            {displayItem.title}
-          </h1>
-
-          <p className="mt-2 text-white/80 font-bold">
-            {displayItem.country || "-"} · {displayItem.category || displayItem.type || "-"} ·{" "}
-            {displayItem.price_status === "request"
-              ? (dict.common?.price_on_request || "Preis auf Anfrage")
-              : displayItem.price_status || (dict.common?.price_on_request || "Preis auf Anfrage")}
-          </p>
+          <div className="mt-8">
+            <span className="rounded-full bg-yellow-400 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-slate-900 border-2 border-slate-900">
+              {displayItem.category || "Listing"}
+            </span>
+            <h1 className="mt-4 max-w-4xl text-4xl md:text-5xl font-black uppercase italic leading-tight">
+              {displayItem.title}
+            </h1>
+            <div className="mt-4 flex flex-wrap items-center gap-4 text-lg font-bold text-white/90">
+              <span>{displayItem.country || "-"}</span>
+              <span className="hidden md:inline opacity-40">|</span>
+              <span className="text-yellow-300">{priceDisplay}</span>
+            </div>
+          </div>
         </div>
-      </section>
+      </header>
 
-      <section className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-6 py-8 lg:grid-cols-[1fr_380px]">
-        <div className="space-y-6">
-          <div className="overflow-hidden rounded-3xl border-2 border-slate-900 bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-            {displayItem.image ? (
-              <img
-                src={displayItem.image}
-                alt={displayItem.title}
-                className="h-[420px] w-full object-cover border-b-2 border-slate-900"
-              />
-            ) : (
-              <div className="flex h-[420px] items-center justify-center bg-slate-100 text-slate-400 border-b-2 border-slate-900 italic">
-                {dict.common?.no_image || "Kein Bild vorhanden"}
-              </div>
-            )}
+      <section className="mx-auto grid max-w-7xl grid-cols-1 gap-10 px-6 py-12 lg:grid-cols-[1fr_400px]">
+        {/* Coloana Stângă: Media & Descriere */}
+        <div className="space-y-8">
+          <div className="overflow-hidden rounded-3xl border-2 border-slate-900 bg-white shadow-[10px_10px_0px_0px_rgba(0,0,0,1)]">
+            <div className="relative aspect-video w-full bg-slate-100">
+              {displayItem.image ? (
+                <img
+                  src={displayItem.image}
+                  alt={displayItem.title}
+                  className="h-full w-full object-cover"
+                  loading="lazy"
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center italic text-slate-400">
+                  {dict.common?.no_image || "Kein Bild vorhanden"}
+                </div>
+              )}
+            </div>
 
-            <div className="p-6">
-              <p className="text-xs font-black uppercase tracking-wider text-[#108280]">
+            <div className="p-8">
+              <h3 className="text-xs font-black uppercase tracking-widest text-[#108280]">
                 {dict.item_details?.description_label || "Beschreibung"}
-              </p>
-
-              <div className="mt-4 whitespace-pre-line text-sm leading-7 text-slate-700 font-medium">
+              </h3>
+              <div className="mt-4 whitespace-pre-line text-base leading-relaxed text-slate-700 font-medium">
                 {displayItem.description || (dict.marketplace?.no_description || "Keine Beschreibung vorhanden.")}
               </div>
             </div>
           </div>
 
-          <div className="rounded-3xl border-2 border-slate-900 bg-white p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-            <p className="text-xs font-black uppercase tracking-wider text-[#108280]">
-                {dict.item_details?.benefits_title || "Beschaffungslogik"}
-            </p>
-
-            <h2 className="mt-1 text-2xl font-black uppercase italic">
-              {dict.item_details?.benefit_2_title || "Dieses Angebot ist keine direkte Bestellung"}
+          {/* Info Box */}
+          <div className="rounded-3xl border-2 border-slate-900 bg-[#e0f2f1] p-8 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)]">
+            <h3 className="text-xs font-black uppercase tracking-widest text-[#108280]">
+              {dict.item_details?.benefits_title || "Logistik & Abwicklung"}
+            </h3>
+            <h2 className="mt-2 text-2xl font-black uppercase italic leading-none">
+              {dict.item_details?.benefit_2_title || "Anfragebasiert"}
             </h2>
-
-            <p className="mt-3 text-sm leading-7 text-slate-600 font-medium">
-              {dict.item_details?.basket_help_text || "Sie können diese Position zu Ihrem Anfragekorb hinzufügen..."}
+            <p className="mt-4 text-sm leading-relaxed text-slate-700 font-medium">
+              {dict.item_details?.basket_help_text || "Dies ist ein unverbindliches Angebot..."}
             </p>
           </div>
         </div>
 
-        <aside className="h-fit space-y-6 lg:sticky lg:top-6">
-          <div className="rounded-3xl border-2 border-slate-900 bg-white p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-            <p className="text-xs font-black uppercase tracking-wider text-[#108280]">
-              {dict.marketplace?.filter_title || "Übersicht"}
-            </p>
+        {/* Coloana Dreaptă: Sidebar Fix */}
+        <aside>
+          <div className="sticky top-8 space-y-6">
+            <div className="rounded-3xl border-2 border-slate-900 bg-white p-8 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)]">
+              <h2 className="text-xl font-black uppercase italic mb-6">
+                {dict.marketplace?.results_label || "Produktdaten"}
+              </h2>
 
-            <h2 className="mt-1 text-xl font-black uppercase italic">{dict.marketplace?.results_label || "Angebotsdaten"}</h2>
+              <div className="space-y-4">
+                <DetailRow label={dict.basket?.label_id || "ID"} value={displayItem.internal_id || displayItem.id} />
+                <DetailRow label={dict.basket?.label_type || "Typ"} value={displayItem.type} />
+                <DetailRow label={dict.common?.country || "Herkunft"} value={displayItem.country} />
+                <DetailRow 
+                   label={dict.marketplace?.info_min_qty || "MOQ"} 
+                   value={`${displayItem.min_qty || "-"} ${displayItem.unit || ""}`} 
+                />
+                <DetailRow label="Status" value={priceDisplay} isHighlight />
+              </div>
 
-            <div className="mt-5 space-y-3 text-sm">
-              <DetailRow label={dict.basket?.label_id || "ID"} value={displayItem.internal_id || displayItem.id || "-"} />
-              <DetailRow label={dict.basket?.label_type || "Typ"} value={displayItem.type || "-"} />
-              <DetailRow label={dict.common?.category || "Kategorie"} value={displayItem.category || "-"} />
-              <DetailRow label={dict.common?.country || "Land"} value={displayItem.country || "-"} />
-              <DetailRow
-                label={dict.basket?.label_supplier || "Anbieter"}
-                value={displayItem.supplier_name || displayItem.supplier_id || "-"}
-              />
-              <DetailRow
-                label={dict.marketplace?.info_min_qty || "Mindestmenge"}
-                value={`${displayItem.min_qty || "-"} ${displayItem.unit || ""}`}
-              />
-              <DetailRow
-                label={dict.item_details?.price_status || "Preisstatus"}
-                value={
-                  displayItem.price_status === "request"
-                    ? (dict.common?.price_on_request || "Preis auf Anfrage")
-                    : displayItem.price_status || "-"
-                }
-              />
+              <div className="mt-8 space-y-4">
+                <AddToRequestButton item={displayItem} dict={dict} lang={lang} />
+                
+                <Link
+                  href={`/${lang}/request-basket`}
+                  className="flex w-full items-center justify-center rounded-2xl border-2 border-slate-900 bg-white px-6 py-4 font-black uppercase transition-all hover:bg-slate-50 active:translate-x-1 active:translate-y-1 active:shadow-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+                >
+                  {dict.nav?.basket_btn || "Warenkorb"}
+                </Link>
+              </div>
             </div>
-
-            <div className="mt-6">
-             <AddToRequestButton item={displayItem} dict={dict} lang={lang} />
-           </div>
-
-            <Link
-              href={`/${lang}/request-basket`}
-              className="mt-3 block w-full rounded-xl border-2 border-slate-900 px-5 py-4 text-center text-sm font-black uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all"
-            >
-              {dict.nav?.basket_btn || "Anfragekorb öffnen"}
-            </Link>
           </div>
         </aside>
       </section>
@@ -192,11 +187,44 @@ export default function MarketplaceDetailsClient({ item: initialItem, dict, lang
   );
 }
 
-function DetailRow({ label, value }: { label: string; value: string }) {
+// Componente Interne pentru Organizare
+function DetailRow({ label, value, isHighlight = false }: { label: string; value: string; isHighlight?: boolean }) {
   return (
-    <div className="flex justify-between gap-4 border-b-2 border-slate-100 pb-2">
-      <span className="text-slate-500 font-bold uppercase text-[10px]">{label}</span>
-      <strong className="text-right text-slate-900">{value}</strong>
+    <div className="flex flex-col border-b border-slate-100 pb-3">
+      <span className="text-[10px] font-black uppercase tracking-tighter text-slate-400">{label}</span>
+      <span className={`text-sm font-bold ${isHighlight ? "text-[#108280]" : "text-slate-900"}`}>
+        {value || "-"}
+      </span>
     </div>
+  );
+}
+
+function LoadingState({ dict }: { dict: any }) {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-[#f4f6f8]">
+      <div className="flex flex-col items-center gap-4">
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#108280] border-t-transparent"></div>
+        <p className="font-black uppercase italic text-[#108280] tracking-widest">
+          {dict.common?.loading || "Laden..."}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function NotFoundState({ dict, lang }: { dict: any; lang: string }) {
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-[#f4f6f8] px-6">
+      <div className="max-w-md w-full rounded-3xl border-2 border-slate-900 bg-white p-12 text-center shadow-[12px_12px_0px_0px_rgba(0,0,0,1)]">
+        <h1 className="text-3xl font-black uppercase italic tracking-tight">404</h1>
+        <p className="mt-2 font-bold text-slate-600">{dict.item_details?.not_found_title || "Nicht gefunden"}</p>
+        <Link
+          href={`/${lang}/marketplace`}
+          className="mt-8 inline-block w-full rounded-2xl bg-[#108280] px-8 py-4 font-black text-white border-2 border-slate-900 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-[#0d6b69] transition-colors"
+        >
+          {dict.item_details?.back_to_marketplace || "Zurück"}
+        </Link>
+      </div>
+    </main>
   );
 }

@@ -289,5 +289,16 @@
   "btn_submit": "Trimite oferta",
   "btn_sending": "Se trimite...",
   "alert_success": "Succes! Oferta a fost creată."
-}
+},
+
+  "search": {
+    "title": "Căutare Produse & Servicii",
+    "placeholder": "Caută ceva...",
+    "label_query": "Cuvânt cheie",
+    "label_category": "Categorie",
+    "label_price": "Preț minim",
+    "button": "Filtrează",
+    "categories": { "all": "Toate", "prod": "Produse", "serv": "Servicii" }
+  }
+
 }

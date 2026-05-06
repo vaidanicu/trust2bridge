@@ -79,9 +79,10 @@
     "what_to_do": "Was möchten Sie tun?",
     "buy": "Kaufen",
     "buy_desc": "Produkte direkt ansehen",
-    "search": "Produkt/Dienstleistungs-Suche",
+    "search": "Anbiten",
     "search_desc": "Anfrage an TrustBridge senden",
     "about": "Über Uns",
+    "Anbiten":"Produkt/Dienstleistungs-Suche",
     "contact": "Kontakt",
     "login": "Login",
     "register": "Registrierung",
@@ -279,4 +280,15 @@
   "btn_sending": "Wird gesendet...",
   "alert_success": "Erfolg! Angebot erstellt."
 }
+,
+  "search": {
+    "title": "Suche Produkte & Dienstleistungen",
+    "placeholder": "Suchen...",
+    "label_query": "Stichwort",
+    "label_category": "Kategorie",
+    "label_price": "Mindestpreis",
+    "button": "Filtern",
+    "categories": { "all": "Alle", "prod": "Produkte", "serv": "Dienstleistungen" }
+  }
+
 }

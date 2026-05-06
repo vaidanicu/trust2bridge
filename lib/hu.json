@@ -293,5 +293,15 @@
   "btn_sending": "Küldés folyamatban...",
   "alert_success": "Siker! Az ajánlat elkészült."
 }
+,
+  "search": {
+    "title": "Termék és Szolgáltatás Kereső",
+    "placeholder": "Keresés...",
+    "label_query": "Kulcsszó",
+    "label_category": "Kategória",
+    "label_price": "Minimum ár",
+    "button": "Szűrés",
+    "categories": { "all": "Mind", "prod": "Termékek", "serv": "Szolgáltatások" }
+  }
 
 }
