@@ -182,7 +182,9 @@
   "btn_submit": "Bejelentkezés",
   "btn_loading": "Belépés...",
   "error_msg": "Sikertelen bejelentkezés. Kérjük, ellenőrizze adatait.",
-  "conn_error": "Szerver csatlakozási hiba."
+  "conn_error": "Szerver csatlakozási hiba.",
+   "no_account": "Nincs még fiókja?",
+  "register_btn": "Regisztráljon most"
 },
 "register": {
   "badge": "TrustBridge Hozzáférés",

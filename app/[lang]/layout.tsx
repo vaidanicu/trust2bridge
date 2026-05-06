@@ -3,10 +3,24 @@ import "../globals.css";
 import Header from "../components/Header"; // Verifică dacă calea este corectă (de regulă e cu ../..)
 import { getDictionary } from "@/lib/dictionary";
 import Footer from "../components/Footer";
+import CookieBanner from "../components/CookieBanner";
 
 export const metadata: Metadata = {
-  title: "TrustBridge B2B",
-  description: "B2B Request Basket Platform",
+  title: {
+    default: "TrustBridge B2B",
+    template: "%s | TrustBridge B2B",
+  },
+
+  description:
+    "B2B sourcing, supplier matching and RFQ platform for buyers and providers across Germany, Hungary and Romania.",
+
+  applicationName: "TrustBridge B2B",
+
+  icons: {
+    icon: "/icon.png",
+    shortcut: "/icon.png",
+    apple: "/icon.png",
+  },
 };
 export const dynamicParams = false;
 // Această funcție este CRUCIALĂ pentru output: export
@@ -35,8 +49,10 @@ export default async function RootLayout({
        
         
         {children}
+        <Footer dict={dict} lang={lang} />
+        <CookieBanner />
       </body>
-       <Footer dict={dict} lang={lang}/>
+       
     </html>
   );
 }

@@ -174,8 +174,11 @@
   "btn_submit": "Einloggen",
   "btn_loading": "Login...",
   "error_msg": "Login fehlgeschlagen. Bitte prüfen Sie Ihre Zugangsdaten.",
-  "conn_error": "Verbindungsfehler zum Server."
+  "conn_error": "Verbindungsfehler zum Server.",
+  "no_account": "Haben Sie noch kein Konto?",
+  "register_btn": "Jetzt registrieren"
 },
+
 "register": {
   "badge": "TrustBridge Zugang",
   "title": "Registrierung beantragen",

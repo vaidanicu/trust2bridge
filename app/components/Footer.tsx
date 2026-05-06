@@ -17,7 +17,6 @@ export default function Footer({
           network: "REȚEA B2B",
           hours: "Luni - Vineri",
           privacy: "Confidențialitate",
-          terms: "Termeni",
           imprint: "Date companie",
         }
       : lang === "hu"
@@ -25,14 +24,12 @@ export default function Footer({
           network: "B2B HÁLÓZAT",
           hours: "Hétfő - Péntek",
           privacy: "Adatvédelem",
-          terms: "Feltételek",
           imprint: "Impresszum",
         }
       : {
           network: "B2B NETZWERK",
           hours: "Montag - Freitag",
           privacy: "Datenschutz",
-          terms: "AGB",
           imprint: "Impressum",
         };
 
@@ -148,9 +145,7 @@ export default function Footer({
               {footerText.privacy}
             </Link>
 
-            <Link href={`/${lang}/terms`} className="hover:text-white">
-              {footerText.terms}
-            </Link>
+            
 
             <Link href={`/${lang}/imprint`} className="hover:text-white">
               {footerText.imprint}

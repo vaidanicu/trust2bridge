@@ -24,14 +24,14 @@ export default function Header({ dict, lang }: { dict: any, lang: string }) {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-100 bg-white/80 backdrop-blur-md">
+    <header className="sticky top-0 z-50 border-b border-slate-100 bg-[#f7f7f7]/95 backdrop-blur-md">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-2.5">
         
         {/* LOGO */}
         <div className="flex shrink-0 items-center">
           <Link href={`/${lang}`} className="group relative block overflow-hidden rounded-md">
             <Image
-              src="/poze/logo.jpeg"
+              src="/poze/logo.png"
               alt="TrustBridge Logo"
               width={180}
               height={50}
@@ -72,7 +72,7 @@ export default function Header({ dict, lang }: { dict: any, lang: string }) {
               
             </div>
           </div>
-          <Link href={`/${lang}/about`} className="transition-colors hover:text-[#108280]">
+          <Link href={`/${lang}/Uberuns`} className="transition-colors hover:text-[#108280]">
             {dict.nav.about}
           </Link>
 

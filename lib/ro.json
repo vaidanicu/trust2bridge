@@ -179,7 +179,9 @@
   "btn_submit": "Autentificare",
   "btn_loading": "Se autentifică...",
   "error_msg": "Autentificare eșuată. Verificați datele introduse.",
-  "conn_error": "Eroare de conexiune la server."
+  "conn_error": "Eroare de conexiune la server.",
+    "no_account": "Nu ai un cont?",
+  "register_btn": "Înregistrează-te acum"
 },
 "register": {
   "badge": "Acces TrustBridge",

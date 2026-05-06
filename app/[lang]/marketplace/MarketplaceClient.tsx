@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { formatConvertedPrice } from "@/lib/currency";
 import { useRef } from "react";
+import { useRouter } from "next/navigation";
 
 const API = "https://trustbridgeb2b.com/backend/wp-json/trustbridge/v1";
 
@@ -17,23 +18,27 @@ export default function MarketplacePage({
   lang: string;
 }) {
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   const formRef = useRef<HTMLDivElement | null>(null);
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // null = se încarcă, true = logat, false = nelogat
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("");
   const [country, setCountry] = useState("");
 
   const [sourcingForm, setSourcingForm] = useState({
-  company: "",
-  product: "",
-  quantity: "",
-  deliveryCountry: "",
-  email: "",
-  message: "",
-});
+    company: "",
+    product: "",
+    quantity: "",
+    deliveryCountry: "",
+    email: "",
+    message: "",
+  });
 
   const countries = [
     "Österreich",
@@ -44,54 +49,83 @@ export default function MarketplacePage({
   ];
 
   const priorities = dict.marketplace?.priorities || [];
-const t =
-  lang === "ro"
-    ? {
-        badge: "Sourcing inteligent",
-        title: "Nu s-a găsit nicio ofertă potrivită",
-        text: "Nu ați găsit ce căutați? Trimiteți-ne cererea, iar TrustBridge vă ajută să găsiți furnizori potriviți.",
-        company: "Firma / Compania",
-        product: "Produs / Serviciu",
-        quantity: "Cantitate / Unitate",
-        country: "Țara de livrare",
-        email: "E-mailul dvs.",
-        message: "Descrieți ce căutați...",
-        submit: "Trimite cererea",
-        reset: "Resetează filtrele",
-        success: "Cererea dvs. a fost trimisă cu succes către TrustBridge.",
-error: "Eroare la trimitere. Vă rugăm să încercați din nou.",
+
+  const t =
+    lang === "ro"
+      ? {
+          badge: "Sourcing inteligent",
+          title: "Nu s-a găsit nicio ofertă potrivită",
+          text: "Nu ați găsit ce căutați? Trimiteți-ne cererea, iar TrustBridge vă ajută să găsiți furnizori potriviți.",
+          company: "Firma / Compania",
+          product: "Produs / Serviciu",
+          quantity: "Cantitate / Unitate",
+          country: "Țara de livrare",
+          email: "E-mailul dvs.",
+          message: "Descrieți ce căutați...",
+          submit: "Trimite cererea",
+          reset: "Resetează filtrele",
+          success: "Cererea dvs. a fost trimisă cu succes către TrustBridge.",
+          error: "Eroare la trimitere. Vă rugăm să încercați din nou.",
+          loginRequired: "Trebuie să fiți autentificat pentru a trimite o cerere.",
+          loginBtn: "Autentifică-te",
+        }
+      : lang === "hu"
+      ? {
+          badge: "Okos beszerzés",
+          title: "Nem található megfelelő ajánlat",
+          text: "Nem találta meg, amit keres? Küldje el nekünk az igényét, és a TrustBridge segít megfelelő beszállítókat találni.",
+          company: "Cég / Vállalat",
+          product: "Termék / Szolgáltatás",
+          quantity: "Mennyiség / Egység",
+          country: "Szállítási ország",
+          email: "Az Ön e-mail címe",
+          message: "Írja le, mit keres...",
+          submit: "Ajánlatkérés küldése",
+          reset: "Szűrők törlése",
+          success: "Kérése sikeresen elküldésre került a TrustBridge részére.",
+          error: "Hiba történt a küldés során. Kérjük, próbálja újra.",
+          loginRequired: "A kérés elküldéséhez be kell jelentkeznie.",
+          loginBtn: "Bejelentkezés",
+        }
+      : {
+          badge: "Smart Sourcing",
+          title: "Kein passendes Angebot gefunden",
+          text: "Sie haben nicht gefunden, was Sie suchen? Senden Sie uns Ihre Anfrage und TrustBridge hilft Ihnen passende Lieferanten zu finden.",
+          company: "Firma / Unternehmen",
+          product: "Produkt / Dienstleistung",
+          quantity: "Menge / Einheit",
+          country: "Zielland / Lieferland",
+          email: "Ihre E-Mail",
+          message: "Beschreiben Sie bitte, was Sie suchen...",
+          submit: "Anfrage senden",
+          reset: "Filter zurücksetzen",
+          success: "Ihre Anfrage wurde erfolgreich an TrustBridge gesendet.",
+          error: "Fehler beim Senden. Bitte versuchen Sie es erneut.",
+          loginRequired: "Sie müssen angemeldet sein, um eine Anfrage zu senden.",
+          loginBtn: "Anmelden",
+        };
+
+  // Verifică autentificarea din localStorage (doar client-side)
+  useEffect(() => {
+    const token = localStorage.getItem("trustbridge_token");
+    const userRaw = localStorage.getItem("trustbridge_user");
+
+    if (token && userRaw) {
+      try {
+        const user = JSON.parse(userRaw);
+        setIsAuthenticated(true);
+        if (user?.email) {
+          setSourcingForm((prev) => ({ ...prev, email: user.email }));
+        }
+      } catch {
+        setIsAuthenticated(false);
       }
-    : lang === "hu"
-    ? {
-        badge: "Okos beszerzés",
-        title: "Nem található megfelelő ajánlat",
-        text: "Nem találta meg, amit keres? Küldje el nekünk az igényét, és a TrustBridge segít megfelelő beszállítókat találni.",
-        company: "Cég / Vállalat",
-        product: "Termék / Szolgáltatás",
-        quantity: "Mennyiség / Egység",
-        country: "Szállítási ország",
-        email: "Az Ön e-mail címe",
-        message: "Írja le, mit keres...",
-        submit: "Ajánlatkérés küldése",
-        reset: "Szűrők törlése",
-        success: "Kérése sikeresen elküldésre került a TrustBridge részére.",
-error: "Hiba történt a küldés során. Kérjük, próbálja újra.",
-      }
-    : {
-        badge: "Smart Sourcing",
-        title: "Kein passendes Angebot gefunden",
-        text: "Sie haben nicht gefunden, was Sie suchen? Senden Sie uns Ihre Anfrage und TrustBridge hilft Ihnen passende Lieferanten zu finden.",
-        company: "Firma / Unternehmen",
-        product: "Produkt / Dienstleistung",
-        quantity: "Menge / Einheit",
-        country: "Zielland / Lieferland",
-        email: "Ihre E-Mail",
-        message: "Beschreiben Sie bitte, was Sie suchen...",
-        submit: "Anfrage senden",
-        reset: "Filter zurücksetzen",
-        success: "Ihre Anfrage wurde erfolgreich an TrustBridge gesendet.",
-error: "Fehler beim Senden. Bitte versuchen Sie es erneut.",
-      };
+    } else {
+      setIsAuthenticated(false);
+    }
+  }, []);
+
+  // Sync URL params → filters
   useEffect(() => {
     const urlCategory = searchParams.get("category");
     const urlCountry = searchParams.get("country");
@@ -102,19 +136,21 @@ error: "Fehler beim Senden. Bitte versuchen Sie es erneut.",
     if (urlQuery) setQuery(urlQuery);
   }, [searchParams]);
 
-useEffect(() => {
-  const smart = searchParams.get("smart");
+  // Scroll to sourcing form if ?smart=1
+  useEffect(() => {
+    const smart = searchParams.get("smart");
 
-  if (smart === "1") {
-    setTimeout(() => {
-      formRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    }, 300);
-  }
-}, [searchParams]);
+    if (smart === "1") {
+      setTimeout(() => {
+        formRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }, 300);
+    }
+  }, [searchParams]);
 
+  // Load marketplace items
   useEffect(() => {
     async function loadItems() {
       try {
@@ -157,97 +193,111 @@ useEffect(() => {
   };
 
   const normalizeText = (value: any) =>
-  String(value || "")
-    .toLowerCase()
-    .trim()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
+    String(value || "")
+      .toLowerCase()
+      .trim()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
 
-const normalizeCountry = (value: any) => {
-  const v = normalizeText(value);
+  const normalizeCountry = (value: any) => {
+    const v = normalizeText(value);
 
-  if (["romania", "românia", "rumanien", "rumänien", "ro"].includes(v)) return "romania";
-  if (["ungarn", "hungary", "magyarorszag", "magyarország", "hu"].includes(v)) return "ungarn";
-  if (["deutschland", "germany", "de"].includes(v)) return "deutschland";
-  if (["osterreich", "österreich", "austria", "at"].includes(v)) return "osterreich";
-  if (["schweiz", "switzerland", "ch"].includes(v)) return "schweiz";
+    if (["romania", "românia", "rumanien", "rumänien", "ro"].includes(v)) return "romania";
+    if (["ungarn", "hungary", "magyarorszag", "magyarország", "hu"].includes(v)) return "ungarn";
+    if (["deutschland", "germany", "de"].includes(v)) return "deutschland";
+    if (["osterreich", "österreich", "austria", "at"].includes(v)) return "osterreich";
+    if (["schweiz", "switzerland", "ch"].includes(v)) return "schweiz";
 
-  return v;
-};
+    return v;
+  };
 
-const filteredItems = useMemo(() => {
-  return items.filter((item) => {
-    const text = `${item.title || ""} ${item.description || ""} ${
-      item.category || ""
-    } ${item.type || ""} ${item.country || ""}`.toLowerCase();
+  const filteredItems = useMemo(() => {
+    return items.filter((item) => {
+      const text = `${item.title || ""} ${item.description || ""} ${
+        item.category || ""
+      } ${item.type || ""} ${item.country || ""}`.toLowerCase();
 
-    const selectedQuery = normalizeText(query);
-    const selectedCategory = normalizeText(category);
-    const selectedCountry = normalizeCountry(country);
+      const selectedQuery = normalizeText(query);
+      const selectedCategory = normalizeText(category);
+      const selectedCountry = normalizeCountry(country);
 
-    const itemCategory = normalizeText(item.category);
-    const itemType = normalizeText(item.type);
-    const itemCountry = normalizeCountry(item.country);
+      const itemCategory = normalizeText(item.category);
+      const itemType = normalizeText(item.type);
+      const itemCountry = normalizeCountry(item.country);
 
-    const matchesQuery = !selectedQuery || normalizeText(text).includes(selectedQuery);
+      const matchesQuery = !selectedQuery || normalizeText(text).includes(selectedQuery);
 
-    const matchesCategory =
-      !selectedCategory ||
-      itemCategory.includes(selectedCategory) ||
-      itemType.includes(selectedCategory) ||
-      selectedCategory.includes(itemCategory) ||
-      selectedCategory.includes(itemType) ||
-      (selectedCategory.includes("dienstleistung") &&
-        (itemCategory.includes("dienstleistung") || itemType.includes("service")));
+      const matchesCategory =
+        !selectedCategory ||
+        itemCategory.includes(selectedCategory) ||
+        itemType.includes(selectedCategory) ||
+        selectedCategory.includes(itemCategory) ||
+        selectedCategory.includes(itemType) ||
+        (selectedCategory.includes("dienstleistung") &&
+          (itemCategory.includes("dienstleistung") || itemType.includes("service")));
 
-    const matchesCountry =
-      !selectedCountry || itemCountry === selectedCountry;
+      const matchesCountry =
+        !selectedCountry || itemCountry === selectedCountry;
 
-    return matchesQuery && matchesCategory && matchesCountry;
-  });
-}, [items, query, category, country]);
-
-const handleSourcingSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
-
-  try {
-    const res = await fetch(`${API}/custom-request`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-  company: sourcingForm.company,
-  product: sourcingForm.product,
-  quantity: sourcingForm.quantity,
-  country: sourcingForm.deliveryCountry,
-  email: sourcingForm.email,
-  message: sourcingForm.message,
-  lang,
-}),
+      return matchesQuery && matchesCategory && matchesCountry;
     });
+  }, [items, query, category, country]);
 
-    const data = await res.json();
+  const handleSourcingSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
 
-    if (!res.ok || !data.success) {
-      throw new Error(data.message || "Request failed");
+    // Guard: redirect la login dacă nu e autentificat
+    if (!isAuthenticated) {
+      const callbackUrl = encodeURIComponent(`/${lang}/marketplace?smart=1`);
+      router.push(`/${lang}/login?callbackUrl=${callbackUrl}`);
+      return;
     }
 
-   alert(t.success);
+    const token = localStorage.getItem("trustbridge_token");
 
-   setSourcingForm({
-  company: "",
-  product: "",
-  quantity: "",
-  deliveryCountry: "",
-  email: "",
-  message: "",
-});
-  } catch (error) {
-    console.error("Custom request error:", error);
-    alert(t.error);
-  }
-};
+    try {
+      const res = await fetch(`${API}/custom-request`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          company: sourcingForm.company,
+          product: sourcingForm.product,
+          quantity: sourcingForm.quantity,
+          country: sourcingForm.deliveryCountry,
+          email: sourcingForm.email,
+          message: sourcingForm.message,
+          lang,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || "Request failed");
+      }
+
+      alert(t.success);
+
+      // Păstrează emailul după reset
+      const userRaw = localStorage.getItem("trustbridge_user");
+      const userEmail = userRaw ? JSON.parse(userRaw)?.email ?? "" : "";
+
+      setSourcingForm({
+        company: "",
+        product: "",
+        quantity: "",
+        deliveryCountry: "",
+        email: userEmail,
+        message: "",
+      });
+    } catch (error) {
+      console.error("Custom request error:", error);
+      alert(t.error);
+    }
+  };
 
   return (
     <main className="min-h-screen bg-[#f4f6f8] text-slate-900 pb-12">
@@ -342,42 +392,42 @@ const handleSourcingSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 
                 <div className="space-y-2 text-sm">
                   {countries.map((c) => {
-  const active = country.toLowerCase() === c.toLowerCase();
+                    const active = country.toLowerCase() === c.toLowerCase();
 
-  return (
-    <button
-      key={c}
-      type="button"
-      onClick={() => setCountry(active ? "" : c)}
-      className={`block w-full rounded-xl border-2 px-4 py-3 text-left font-bold transition-all ${
-        active
-          ? "border-[#108280] bg-[#108280]/10 text-[#108280]"
-          : "border-slate-100 hover:border-slate-300"
-      }`}
-    >
-      {active ? "●" : "○"} {c}
-    </button>
-  );
-})}
+                    return (
+                      <button
+                        key={c}
+                        type="button"
+                        onClick={() => setCountry(active ? "" : c)}
+                        className={`block w-full rounded-xl border-2 px-4 py-3 text-left font-bold transition-all ${
+                          active
+                            ? "border-[#108280] bg-[#108280]/10 text-[#108280]"
+                            : "border-slate-100 hover:border-slate-300"
+                        }`}
+                      >
+                        {active ? "●" : "○"} {c}
+                      </button>
+                    );
+                  })}
 
                   <button
                     onClick={() => setCountry("")}
                     className="block w-full rounded-xl border-2 border-slate-100 px-4 py-3 text-left font-bold hover:border-slate-300"
                   >
-                   {!country ? "●" : "○"} {dict.marketplace?.all_countries}
+                    {!country ? "●" : "○"} {dict.marketplace?.all_countries}
                   </button>
                 </div>
               </div>
 
               <div className="mt-8 rounded-2xl bg-[#108280]/10 p-4">
-  <p className="text-xs font-black uppercase tracking-widest text-[#108280]">
-    TrustBridge Vorteil
-  </p>
+                <p className="text-xs font-black uppercase tracking-widest text-[#108280]">
+                  TrustBridge Vorteil
+                </p>
 
-  <p className="mt-2 text-sm font-semibold leading-6 text-slate-600">
-    Wir unterstützen Sie bei Lieferantensuche, Angebotsvergleich und sicherer B2B-Abwicklung.
-  </p>
-</div>
+                <p className="mt-2 text-sm font-semibold leading-6 text-slate-600">
+                  Wir unterstützen Sie bei Lieferantensuche, Angebotsvergleich und sicherer B2B-Abwicklung.
+                </p>
+              </div>
             </div>
 
             <div className="rounded-3xl border-2 border-slate-900 bg-slate-950 p-6 text-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
@@ -436,9 +486,9 @@ const handleSourcingSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
               </div>
             ) : filteredItems.length === 0 || searchParams.get("smart") === "1" ? (
               <div
-  ref={formRef}
-  className="rounded-3xl border-2 border-slate-900 bg-white p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] md:p-12"
->
+                ref={formRef}
+                className="rounded-3xl border-2 border-slate-900 bg-white p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] md:p-12"
+              >
                 <div className="mx-auto max-w-3xl text-center">
                   <span className="inline-flex rounded-full bg-[#108280]/10 px-4 py-2 text-xs font-black uppercase tracking-widest text-[#108280]">
                     {t.badge}
@@ -453,33 +503,43 @@ const handleSourcingSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                   </p>
                 </div>
 
+                {/* Banner login — vizibil doar pentru utilizatori neautentificați */}
+                {isAuthenticated === false && (
+                  <div className="mx-auto mt-8 max-w-3xl rounded-2xl border-2 border-amber-300 bg-amber-50 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <p className="text-sm font-bold text-amber-800">
+                      {t.loginRequired}
+                    </p>
+                    <Link
+                      href={`/${lang}/login?callbackUrl=${encodeURIComponent(`/${lang}/marketplace?smart=1`)}`}
+                      className="shrink-0 rounded-xl bg-amber-500 px-6 py-3 text-xs font-black uppercase text-white hover:bg-amber-600 transition-colors"
+                    >
+                      {t.loginBtn}
+                    </Link>
+                  </div>
+                )}
+
                 <form
                   className="mx-auto mt-10 max-w-3xl space-y-5"
                   onSubmit={handleSourcingSubmit}
                 >
                   <div className="grid gap-5 md:grid-cols-2">
                     <input
-  type="text"
-  required
-  value={sourcingForm.company}
-  onChange={(e) =>
-    setSourcingForm({
-      ...sourcingForm,
-      company: e.target.value,
-    })
-  }
-  placeholder={t.company}
-  className="h-14 w-full rounded-2xl border-2 border-slate-200 bg-slate-50 px-5 text-sm font-bold outline-none transition focus:border-[#108280] focus:bg-white focus:ring-4 focus:ring-[#108280]/10"
-/>
+                      type="text"
+                      required
+                      value={sourcingForm.company}
+                      onChange={(e) =>
+                        setSourcingForm({ ...sourcingForm, company: e.target.value })
+                      }
+                      placeholder={t.company}
+                      className="h-14 w-full rounded-2xl border-2 border-slate-200 bg-slate-50 px-5 text-sm font-bold outline-none transition focus:border-[#108280] focus:bg-white focus:ring-4 focus:ring-[#108280]/10"
+                    />
+
                     <input
                       type="text"
                       required
                       value={sourcingForm.product}
                       onChange={(e) =>
-                        setSourcingForm({
-                          ...sourcingForm,
-                          product: e.target.value,
-                        })
+                        setSourcingForm({ ...sourcingForm, product: e.target.value })
                       }
                       placeholder={t.product}
                       className="h-14 rounded-2xl border-2 border-slate-200 bg-slate-50 px-5 text-sm font-bold outline-none transition focus:border-[#108280] focus:bg-white focus:ring-4 focus:ring-[#108280]/10"
@@ -489,10 +549,7 @@ const handleSourcingSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                       type="text"
                       value={sourcingForm.quantity}
                       onChange={(e) =>
-                        setSourcingForm({
-                          ...sourcingForm,
-                          quantity: e.target.value,
-                        })
+                        setSourcingForm({ ...sourcingForm, quantity: e.target.value })
                       }
                       placeholder={t.quantity}
                       className="h-14 rounded-2xl border-2 border-slate-200 bg-slate-50 px-5 text-sm font-bold outline-none transition focus:border-[#108280] focus:bg-white focus:ring-4 focus:ring-[#108280]/10"
@@ -504,10 +561,7 @@ const handleSourcingSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                       type="text"
                       value={sourcingForm.deliveryCountry}
                       onChange={(e) =>
-                        setSourcingForm({
-                          ...sourcingForm,
-                          deliveryCountry: e.target.value,
-                        })
+                        setSourcingForm({ ...sourcingForm, deliveryCountry: e.target.value })
                       }
                       placeholder={t.country}
                       className="h-14 rounded-2xl border-2 border-slate-200 bg-slate-50 px-5 text-sm font-bold outline-none transition focus:border-[#108280] focus:bg-white focus:ring-4 focus:ring-[#108280]/10"
@@ -518,10 +572,7 @@ const handleSourcingSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                       required
                       value={sourcingForm.email}
                       onChange={(e) =>
-                        setSourcingForm({
-                          ...sourcingForm,
-                          email: e.target.value,
-                        })
+                        setSourcingForm({ ...sourcingForm, email: e.target.value })
                       }
                       placeholder={t.email}
                       className="h-14 rounded-2xl border-2 border-slate-200 bg-slate-50 px-5 text-sm font-bold outline-none transition focus:border-[#108280] focus:bg-white focus:ring-4 focus:ring-[#108280]/10"
@@ -533,10 +584,7 @@ const handleSourcingSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                     rows={5}
                     value={sourcingForm.message}
                     onChange={(e) =>
-                      setSourcingForm({
-                        ...sourcingForm,
-                        message: e.target.value,
-                      })
+                      setSourcingForm({ ...sourcingForm, message: e.target.value })
                     }
                     placeholder={t.message}
                     className="w-full rounded-2xl border-2 border-slate-200 bg-slate-50 p-5 text-sm font-bold outline-none transition focus:border-[#108280] focus:bg-white focus:ring-4 focus:ring-[#108280]/10"
@@ -545,9 +593,10 @@ const handleSourcingSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                   <div className="flex flex-col gap-4 pt-2 sm:flex-row">
                     <button
                       type="submit"
-                      className="rounded-2xl bg-[#108280] px-8 py-4 text-sm font-black uppercase tracking-widest text-white transition hover:bg-[#0d6b69]"
+                      disabled={isAuthenticated === null}
+                      className="rounded-2xl bg-[#108280] px-8 py-4 text-sm font-black uppercase tracking-widest text-white transition hover:bg-[#0d6b69] disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                     {t.submit}
+                      {isAuthenticated === null ? "..." : t.submit}
                     </button>
 
                     <button
@@ -614,9 +663,7 @@ const handleSourcingSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 
                         <InfoCard
                           label={dict.marketplace?.info_min_qty || "MOQ"}
-                          value={`${item.min_qty || "1"} ${
-                            item.unit || "Unit"
-                          }`}
+                          value={`${item.min_qty || "1"} ${item.unit || "Unit"}`}
                         />
                       </div>
 
