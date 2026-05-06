@@ -59,7 +59,7 @@ export default function Header({ dict, lang }: { dict: any, lang: string }) {
                 <span className="text-[11px] text-slate-500">{dict.nav.buy_desc}</span>
               </Link>
 
-<Link href={`/${lang}/search`} className="group/item block rounded-lg px-4 py-2.5 transition-colors hover:bg-slate-50">
+<Link href={`/${lang}/marketplace?smart=1`} className="group/item block rounded-lg px-4 py-2.5 transition-colors hover:bg-slate-50">
                 <span className="block text-sm font-bold text-slate-900 group-hover/item:text-[#108280]">{dict.nav.Anbiten}</span>
                 <span className="text-[11px] text-slate-500">{dict.nav.Anbiten}</span>
               </Link>

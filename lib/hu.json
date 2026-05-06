@@ -84,19 +84,20 @@
     "added_to_basket": "Már a kosárban van"
   },
   "nav": {
-    "marketplace": "Piactér",
-    "what_to_do": "Mit szeretne tenni?",
-    "buy": "Vásárlás",
-    "buy_desc": "Termékek közvetlenül a forrástól",
-    "search": "Termék-/szolgáltatáskeresés",
-    "search_desc": "Kérelem küldése a TrustBridge-nek",
-    "about": "Rólunk",
-    "contact": "Kapcsolat",
-    "login": "Bejelentkezés",
-    "register": "Regisztráció",
-    "contact_btn": "Kapcsolatfelvétel most",
-    "basket_btn": "Kosár megtekintése"
-  },
+  "marketplace": "Marketplace",
+  "what_to_do": "Mit szeretne tenni?",
+  "buy": "Vásárlás",
+  "buy_desc": "Termékek közvetlen megtekintése",
+  "search": "Ajánlatadás",
+  "search_desc": "Küldjön igényt a TrustBridge részére",
+  "about": "Rólunk",
+  "Anbiten": "Termék/Szolgáltatás keresés",
+  "contact": "Kapcsolat",
+  "login": "Bejelentkezés",
+  "register": "Regisztráció",
+  "contact_btn": "Kapcsolatfelvétel most",
+  "basket_btn": "Igénykosár megtekintése"
+},
   "item_details": {
     "not_found_title": "A termék nem létezik.",
     "back_to_marketplace": "Vissza a Piactérre",
@@ -303,5 +304,20 @@
     "button": "Szűrés",
     "categories": { "all": "Mind", "prod": "Termékek", "serv": "Szolgáltatások" }
   }
-
+,
+"footer": {
+  "brand_text": "A TrustBridge ellenőrzött B2B beszállítókat és vásárlókat köt össze Németországban, Magyarországon és Romániában.",
+  "quick_links": "Gyorslinkek",
+  "marketplace": "Marketplace",
+  "request_basket": "Igénykosár",
+  "about": "Rólunk",
+  "contact": "Kapcsolat",
+  "services": "Szolgáltatások",
+  "buy": "Vásárlás",
+  "search": "Termék-/szolgáltatáskeresés",
+  "supplier": "Beszállító leszek",
+  "support": "Támogatás",
+  "email": "E-mail",
+  "rights": "Minden jog fenntartva."
+}
 }

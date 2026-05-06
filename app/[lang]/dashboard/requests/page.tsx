@@ -174,11 +174,45 @@ function RequestDetailsContent() {
             </p>
             <h2 className="mt-1 text-2xl font-black">Produkte in dieser Anfrage</h2>
             {items.length === 0 ? (
-              <p className="mt-5 rounded-2xl bg-slate-50 p-6 text-slate-500">
-                Keine Produkte gefunden.
-              </p>
-            ) : (
-              <div className="mt-6 space-y-5">
+  requestData.custom_product || requestData.custom_message ? (
+    <div className="mt-6 rounded-2xl bg-slate-50 p-6">
+      <p className="text-xs font-black uppercase tracking-widest text-[#108280]">
+        Smart Sourcing Anfrage
+      </p>
+
+      <h3 className="mt-3 text-2xl font-black text-slate-950">
+        {requestData.custom_product || "Anfrage ohne Produkttitel"}
+      </h3>
+
+      <div className="mt-5 grid gap-4 md:grid-cols-2">
+        <InfoBox
+          label="Menge / Einheit"
+          value={requestData.custom_quantity || "-"}
+        />
+
+        <InfoBox
+          label="Zielland"
+          value={requestData.delivery_country || "-"}
+        />
+      </div>
+
+      <div className="mt-5 rounded-2xl bg-white p-5">
+        <p className="text-xs font-black uppercase text-slate-500">
+          Beschreibung
+        </p>
+
+        <p className="mt-2 whitespace-pre-line text-sm font-semibold leading-7 text-slate-800">
+          {requestData.custom_message || "-"}
+        </p>
+      </div>
+    </div>
+  ) : (
+    <p className="mt-5 rounded-2xl bg-slate-50 p-6 text-slate-500">
+      Keine Produkte gefunden.
+    </p>
+  )
+) : (
+  <div className="mt-6 space-y-5">
                 {items.map((item: any, index: number) => (
                   <div
                     key={`${item.id}-${index}`}

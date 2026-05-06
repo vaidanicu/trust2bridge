@@ -83,19 +83,20 @@
   "added_to_basket": "Deja în coș"
   },
   "nav": {
-    "marketplace": "Marketplace",
-    "what_to_do": "Ce doriți să faceți?",
-    "buy": "Cumpără",
-    "buy_desc": "Produse direct de la sursă",
-    "search": "Căutare produse/servicii",
-    "search_desc": "Trimite cererea către TrustBridge",
-    "about": "Despre Noi",
-    "contact": "Contactează-ne",
-    "login": "Autentificare",
-    "register": "Înregistrare",
-    "contact_btn": "Contactează-ne acum",
-    "basket_btn": "Vezi coșul"
-  },
+  "marketplace": "Marketplace",
+  "what_to_do": "Ce doriți să faceți?",
+  "buy": "Cumpără",
+  "buy_desc": "Vizualizați produsele direct",
+  "search": "Oferă",
+  "search_desc": "Trimiteți o cerere către TrustBridge",
+  "about": "Despre noi",
+  "Anbiten": "Căutare Produse/Servicii",
+  "contact": "Contact",
+  "login": "Autentificare",
+  "register": "Înregistrare",
+  "contact_btn": "Contactați-ne acum",
+  "basket_btn": "Vezi coșul de cereri"
+},
   "item_details": {
     "not_found_title": "Produsul nu există.",
     "back_to_marketplace": "Înapoi la Marketplace",
@@ -300,5 +301,20 @@
     "button": "Filtrează",
     "categories": { "all": "Toate", "prod": "Produse", "serv": "Servicii" }
   }
-
+,
+"footer": {
+  "brand_text": "TrustBridge conectează furnizori și cumpărători B2B verificați din Germania, Ungaria și România.",
+  "quick_links": "Linkuri rapide",
+  "marketplace": "Marketplace",
+  "request_basket": "Coș de cereri",
+  "about": "Despre noi",
+  "contact": "Contact",
+  "services": "Servicii",
+  "buy": "Cumpără",
+  "search": "Căutare produse/servicii",
+  "supplier": "Devino furnizor",
+  "support": "Suport",
+  "email": "E-mail",
+  "rights": "Toate drepturile rezervate."
+}
 }

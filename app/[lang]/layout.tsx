@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "../globals.css"; 
 import Header from "../components/Header"; // Verifică dacă calea este corectă (de regulă e cu ../..)
 import { getDictionary } from "@/lib/dictionary";
+import Footer from "../components/Footer";
 
 export const metadata: Metadata = {
   title: "TrustBridge B2B",
@@ -31,9 +32,11 @@ export default async function RootLayout({
       <body className="antialiased">
         {/* 3. Trimitem dict și lang către Header */}
         <Header dict={dict} lang={lang} /> 
+       
         
         {children}
       </body>
+       <Footer dict={dict} lang={lang}/>
     </html>
   );
 }

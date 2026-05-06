@@ -289,6 +289,21 @@
     "label_price": "Mindestpreis",
     "button": "Filtern",
     "categories": { "all": "Alle", "prod": "Produkte", "serv": "Dienstleistungen" }
-  }
+  },
+  "footer": {
+  "brand_text": "TrustBridge verbindet geprüfte B2B-Anbieter und Käufer in Deutschland, Ungarn und Rumänien.",
+  "quick_links": "Schnellzugriff",
+  "marketplace": "Marketplace",
+  "request_basket": "Anfragekorb",
+  "about": "Über uns",
+  "contact": "Kontakt",
+  "services": "Services",
+  "buy": "Kaufen",
+  "search": "Produkt-/Dienstleistungs-Suche",
+  "supplier": "Anbieter werden",
+  "support": "Support",
+  "email": "E-Mail",
+  "rights": "Alle Rechte vorbehalten."
+}
 
 }

@@ -1,7 +1,7 @@
 export const EXCHANGE_RATES = {
   EUR: 1,
   HUF: 362.83,
-  RON: 5.2194,
+  RON: 5.1194,
 };
 
 export function getCurrencyByLang(lang: string) {
