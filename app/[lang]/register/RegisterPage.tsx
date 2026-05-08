@@ -18,15 +18,16 @@ export default function RegisterPage({ dict, lang }: { dict: any, lang: string }
 
     const formData = new FormData(e.currentTarget);
     const payload = {
-      company: formData.get("company"),
-      contact_name: formData.get("contact_name"),
-      email: formData.get("email"),
-      phone: formData.get("phone"),
-      country: formData.get("country"),
-      vat: formData.get("vat"),
-      business_type: formData.get("business_type"),
-      message: formData.get("message"),
-    };
+  company: formData.get("company"),
+  contact_name: formData.get("contact_name"),
+  email: formData.get("email"),
+  phone: formData.get("phone"),
+  country: formData.get("country"),
+  vat: formData.get("vat"),
+  business_type: formData.get("business_type"),
+  message: formData.get("message"),
+  lang: lang, // ✅ adăugat
+};
 
     try {
       const res = await fetch(`${API_URL}/register-request`, {

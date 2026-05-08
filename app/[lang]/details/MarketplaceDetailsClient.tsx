@@ -31,9 +31,9 @@ export default function MarketplaceDetailsClient({ item: initialItem, dict, lang
 
       try {
         setIsLoading(true);
-        const response = await fetch(`${API_BASE_URL}/items/${id}`, {
-          cache: "no-store",
-        });
+        const response = await fetch(`${API_BASE_URL}/items/${id}?lang=${lang}`, {
+  cache: "no-store",
+});
 
         if (!response.ok) throw new Error("Failed to fetch item");
 
@@ -53,7 +53,7 @@ export default function MarketplaceDetailsClient({ item: initialItem, dict, lang
     };
 
     fetchItemDetails();
-  }, [id, initialItem]);
+  }, [id, initialItem, lang]);
 
   // Formatare preț memorată pentru performanță
   const priceDisplay = useMemo(() => {

@@ -2,12 +2,70 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import Image from "next/image";
+import { useParams } from "next/navigation";
+import { formatConvertedPrice } from "@/lib/currency";
 
 const API = "https://trustbridgeb2b.com/backend/wp-json/trustbridge/v1";
 
-// ─── 1. OBIECTUL DE TRADUCERI COMPLET ───────────────────────────────────────
-const translations: any = {
+// ─── INTERFEȚE PENTRU TIPARE ────────────────────────────────────────────────
+
+interface TranslationDict {
+  [key: string]: string;
+}
+
+interface Translations {
+  [lang: string]: TranslationDict;
+}
+
+interface User {
+  name: string;
+  company?: string;
+  roles: string[];
+}
+
+interface ProductItem {
+  id: number;
+  internal_id?: string;
+  title: string;
+  description: string;
+  image?: string;
+  gallery?: string[];
+  price?: string;
+  currency?: string;
+  unit?: string;
+  country?: string;
+  category?: string;
+  subcategory?: string;
+  wp_status?: string;
+  supplier_name?: string;
+  supplier_email?: string;
+  type?: string;
+}
+
+interface RequestItem {
+  id: number;
+  date?: string;
+  company?: string;
+  delivery_country?: string;
+  status: string;
+  parent_request?: number;
+}
+
+interface RegistrationItem {
+  id: number;
+  date: string;
+  company: string;
+  contact_name: string;
+  email: string;
+  vat?: string;
+  country?: string;
+  status?: string;
+  business_type?: string;
+}
+
+// ─── 1. OBIECTUL DE TRADUCERI ───────────────────────────────────────────────
+const translations: Translations = {
   de: {
     welcome: "Willkommen",
     company: "Firma",
@@ -48,6 +106,8 @@ const translations: any = {
     t_country: "Zielland",
     t_contact: "Kontakt",
     t_email: "E-Mail",
+    t_vat: "USt-IdNr.",
+    t_reg_country: "Land",
     t_type: "Typ",
     btn_details: "PRÜFEN / DETAILS",
     btn_approve: "Freigeben",
@@ -125,6 +185,8 @@ const translations: any = {
     t_country: "Célország",
     t_contact: "Kapcsolattartó",
     t_email: "E-mail",
+    t_vat: "Adószám",
+    t_reg_country: "Ország",
     t_type: "Típus",
     btn_details: "ELLENŐRZÉS / RÉSZLETEK",
     btn_approve: "Jóváhagyás",
@@ -202,6 +264,8 @@ const translations: any = {
     t_country: "Țară destinație",
     t_contact: "Contact",
     t_email: "Email",
+    t_vat: "CIF",
+    t_reg_country: "Țară",
     t_type: "Tip",
     btn_details: "VERIFICĂ / DETALII",
     btn_approve: "Aprobă",
@@ -243,9 +307,33 @@ const translations: any = {
 
 // ─── 2. COMPONENTE AJUTĂTOARE ────────────────────────────────────────────────
 
-function ProductModal({ item, onClose, onApprove, onReject, isAdmin, dict }: any) {
+interface ProductModalProps {
+  item: ProductItem;
+  onClose: () => void;
+  onApprove?: (id: number) => void;
+  onReject?: (id: number) => void;
+  isAdmin: boolean;
+  dict: TranslationDict;
+  lang: string;
+}
+
+function ProductModal({
+  item,
+  onClose,
+  onApprove,
+  onReject,
+  isAdmin,
+  dict,
+  lang,
+}: ProductModalProps) {
   const isLive = item.wp_status === "publish";
-  const allImages = [item.image, ...(item.gallery || [])].filter(Boolean);
+  const allImages = [item.image, ...(item.gallery || [])].filter(
+    (img): img is string => !!img
+  );
+
+  const priceDisplay =
+    formatConvertedPrice(item.price, lang) ||
+    (item.price ? `${item.price} ${item.currency || "EUR"}` : dict.m_on_request);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-md" onClick={(e) => e.target === e.currentTarget && onClose()}>
@@ -268,7 +356,14 @@ function ProductModal({ item, onClose, onApprove, onReject, isAdmin, dict }: any
               {allImages.length > 0 ? (
                 <div className="grid grid-cols-2 gap-2">
                   {allImages.map((img: string, i: number) => (
-                    <img key={i} src={img} alt="Preview" className={`rounded-2xl object-cover h-40 w-full border bg-slate-50 ${i === 0 ? "col-span-2 h-64" : ""}`} />
+                    <div key={i} className={`relative overflow-hidden rounded-2xl border bg-slate-50 ${i === 0 ? "col-span-2 h-64" : "h-40"}`}>
+                      <Image 
+                        src={img} 
+                        alt="Preview" 
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
                   ))}
                 </div>
               ) : (
@@ -284,7 +379,7 @@ function ProductModal({ item, onClose, onApprove, onReject, isAdmin, dict }: any
           <div className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
               <DataBox label={dict.t_status} value={isLive ? `✅ ${dict.s_live.toUpperCase()}` : `⏳ ${dict.s_waiting.toUpperCase()}`} highlight={!isLive} />
-              <DataBox label={dict.m_price} value={item.price ? `${item.price} ${item.currency || "€"}` : dict.m_on_request} />
+             <DataBox label={dict.m_price} value={priceDisplay} />
               <DataBox label={dict.m_unit} value={item.unit || "-"} />
               <DataBox label={dict.t_country} value={item.country || "N/A"} />
               <DataBox label={dict.m_cat} value={item.category || "-"} />
@@ -322,7 +417,7 @@ function ProductModal({ item, onClose, onApprove, onReject, isAdmin, dict }: any
   );
 }
 
-function DataBox({ label, value, highlight = false }: any) {
+function DataBox({ label, value, highlight = false }: { label: string; value: string; highlight?: boolean }) {
   return (
     <div className={`p-4 rounded-2xl border ${highlight ? "bg-yellow-50 border-yellow-200" : "bg-slate-50 border-slate-100"}`}>
       <p className="text-[10px] font-black uppercase text-slate-400 mb-1">{label}</p>
@@ -331,7 +426,7 @@ function DataBox({ label, value, highlight = false }: any) {
   );
 }
 
-function StatusBadge({ status, dict }: any) {
+function StatusBadge({ status, dict }: { status: string; dict: TranslationDict }) {
   let label = dict.s_new;
   let classes = "bg-gray-100 text-gray-700";
 
@@ -351,17 +446,17 @@ function StatusBadge({ status, dict }: any) {
 
 // ─── 3. PAGINA PRINCIPALĂ DASHBOARD ──────────────────────────────────────────
 
-export default function DashboardPage(props: any) {
+export default function DashboardPage() {
   const params = useParams();
   const lang = (params?.lang as string) || "de";
   const dict = translations[lang] || translations.de;
 
-  const [user, setUser] = useState<any>(null);
-  const [requests, setRequests] = useState<any[]>([]);
-  const [registrations, setRegistrations] = useState<any[]>([]);
-  const [myItems, setMyItems] = useState<any[]>([]);
+  const [user, setUser] = useState<User | null>(null);
+  const [requests, setRequests] = useState<RequestItem[]>([]);
+  const [registrations, setRegistrations] = useState<RegistrationItem[]>([]);
+  const [myItems, setMyItems] = useState<ProductItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [selectedItem, setSelectedItem] = useState<ProductItem | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem("trustbridge_token");
@@ -369,6 +464,7 @@ export default function DashboardPage(props: any) {
 
     async function loadDashboard() {
       try {
+        const token = localStorage.getItem("trustbridge_token");
         const meRes = await fetch(`${API}/me`, { headers: { Authorization: `Bearer ${token}` } });
         const meData = await meRes.json();
         if (meData.code) { window.location.href = `/${lang}/login`; return; }
@@ -377,13 +473,12 @@ export default function DashboardPage(props: any) {
         const isAdmin = meData.roles?.includes("administrator");
         const isSupplier = meData.roles?.includes("tb_supplier") || meData.roles?.includes("TrustBridge_Supplier");
 
-        // Fetch Requests
         const reqRes = await fetch(`${API}/requests`, { headers: { Authorization: `Bearer ${token}` } });
         const reqData = await reqRes.json();
         setRequests(Array.isArray(reqData) ? reqData : []);
 
         if (isAdmin) {
-          const itemsRes = await fetch(`${API}/items`, { headers: { Authorization: `Bearer ${token}` } });
+          const itemsRes = await fetch(`${API}/items-admin?lang=${lang}`, { headers: { Authorization: `Bearer ${token}` } });
           const itemsData = await itemsRes.json();
           setMyItems(Array.isArray(itemsData) ? itemsData : []);
 
@@ -391,7 +486,7 @@ export default function DashboardPage(props: any) {
           const regData = await regRes.json();
           setRegistrations(Array.isArray(regData) ? regData : []);
         } else if (isSupplier) {
-          const itemsRes = await fetch(`${API}/my-items`, { headers: { Authorization: `Bearer ${token}` } });
+          const itemsRes = await fetch(`${API}/my-items?lang=${lang}`, { headers: { Authorization: `Bearer ${token}` } });
           const itemsData = await itemsRes.json();
           setMyItems(Array.isArray(itemsData) ? itemsData : []);
         }
@@ -442,13 +537,26 @@ export default function DashboardPage(props: any) {
 
   const isAdmin = user?.roles?.includes("administrator");
   const isSupplier = user?.roles?.includes("tb_supplier") || user?.roles?.includes("TrustBridge_Supplier");
-  const visibleRequests = isAdmin ? requests.filter((req: any) => !req.parent_request) : requests;
-  const subRequests = requests.filter((req: any) => req.parent_request);
+  const visibleRequests = isAdmin
+    ? requests.filter((req) => !req.parent_request)
+    : requests;
+
+  const subRequests = isAdmin
+    ? requests.filter((req) => req.parent_request)
+    : [];
 
   return (
     <main className="min-h-screen bg-[#f4f6f8] text-slate-900 pb-20">
       {selectedItem && (
-        <ProductModal item={selectedItem} onClose={() => setSelectedItem(null)} isAdmin={isAdmin} dict={dict} onApprove={(id: any) => handleItemAction(id, "approve")} onReject={(id: any) => handleItemAction(id, "reject")} />
+       <ProductModal 
+  item={selectedItem} 
+  onClose={() => setSelectedItem(null)} 
+  isAdmin={!!isAdmin} 
+  dict={dict}
+  lang={lang}
+  onApprove={(id) => handleItemAction(id, "approve")} 
+  onReject={(id) => handleItemAction(id, "reject")} 
+/>
       )}
 
       {/* Hero */}
@@ -479,39 +587,84 @@ export default function DashboardPage(props: any) {
         </div>
 
         {/* ADMIN: PRODUCT APPROVAL */}
-        {isAdmin && (
-          <div className="mb-10 rounded-[2.5rem] border border-slate-100 bg-white p-8 shadow-xl">
-            <div className="mb-6">
-              <p className="text-xs font-black uppercase tracking-wider text-[#108280]">{dict.admin_area}</p>
-              <h2 className="text-2xl font-black flex items-center gap-2">{dict.prod_approval} <span className="bg-orange-100 text-orange-600 text-[10px] px-2 py-1 rounded-full uppercase">{dict.control}</span></h2>
-            </div>
-            {myItems.length === 0 ? (
-              <div className="rounded-2xl bg-slate-50 p-8 text-center"><h3 className="text-xl font-black">{dict.no_pending_prods}</h3><p className="mt-2 text-sm text-slate-500">{dict.no_pending_prods_desc}</p></div>
-            ) : (
-              <div className="overflow-x-auto rounded-2xl border">
-                <table className="w-full min-w-[700px] text-left text-sm">
-                  <thead className="bg-slate-950 text-white">
-                    <tr><th className="p-4 font-black text-[10px] uppercase">{dict.t_product}</th><th className="p-4 font-black text-[10px] uppercase">{dict.t_supplier}</th><th className="p-4 font-black text-[10px] uppercase">{dict.t_status}</th><th className="p-4 text-right font-black text-[10px] uppercase">{dict.t_action}</th></tr>
-                  </thead>
-                  <tbody className="divide-y bg-white">
-                    {myItems.map((item: any) => (
-                      <tr key={item.id} className="hover:bg-slate-50/50 transition">
-                        <td className="p-4"><p className="font-black text-slate-800">{item.title}</p><p className="text-[10px] text-slate-400">{item.category}</p></td>
-                        <td className="p-4"><p className="font-bold text-slate-600">{item.supplier_name || "---"}</p><p className="text-[10px] text-slate-400">{item.supplier_email}</p></td>
-                        <td className="p-4"><span className={`rounded-full px-2 py-1 text-[10px] font-bold uppercase ${item.wp_status === "publish" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>{item.wp_status === "publish" ? dict.s_live : dict.s_waiting}</span></td>
-                        <td className="p-4 text-right"><div className="flex justify-end gap-2">
-                          <button onClick={() => setSelectedItem(item)} className="bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-black hover:bg-[#108280] transition">{dict.btn_details}</button>
-                          {item.wp_status !== "publish" && <button onClick={() => handleItemAction(item.id, "approve")} className="rounded-lg bg-green-600 px-3 py-2 text-xs font-black text-white">{dict.btn_approve}</button>}
-                          <button onClick={() => handleItemAction(item.id, "reject")} className="rounded-lg bg-red-600 px-3 py-2 text-xs font-black text-white">{dict.btn_delete}</button>
-                        </div></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        )}
+       {isAdmin && (
+  <div className="mb-10 rounded-[2.5rem] border border-slate-100 bg-white p-8 shadow-xl">
+    <div className="mb-6">
+      <p className="text-xs font-black uppercase tracking-wider text-[#108280]">{dict.admin_area}</p>
+      <h2 className="text-2xl font-black flex items-center gap-2">
+        {dict.prod_approval} 
+        <span className="bg-orange-100 text-orange-600 text-[10px] px-2 py-1 rounded-full uppercase">{dict.control}</span>
+      </h2>
+    </div>
+
+    {myItems.length === 0 ? (
+      <div className="rounded-2xl bg-slate-50 p-8 text-center">
+        <h3 className="text-xl font-black">{dict.no_pending_prods}</h3>
+        <p className="mt-2 text-sm text-slate-500">{dict.no_pending_prods_desc}</p>
+      </div>
+    ) : (
+      <div className="overflow-x-auto rounded-2xl border">
+        <table className="w-full min-w-[700px] text-left text-sm">
+          <thead className="bg-slate-950 text-white">
+            <tr>
+              <th className="p-4 font-black text-[10px] uppercase">{dict.t_product}</th>
+              <th className="p-4 font-black text-[10px] uppercase">{dict.t_supplier}</th>
+              <th className="p-4 font-black text-[10px] uppercase">{dict.t_status}</th>
+              <th className="p-4 text-right font-black text-[10px] uppercase">{dict.t_action}</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y bg-white">
+            {myItems.map((item) => (
+              <tr key={item.id} className="hover:bg-slate-50/50 transition">
+                <td className="p-4">
+                  <p className="font-black text-slate-800">{item.title}</p>
+                  <p className="text-[10px] text-slate-400">{item.category}</p>
+                </td>
+                <td className="p-4">
+                  <p className="font-bold text-slate-600">{item.supplier_name || "---"}</p>
+                  <p className="text-[10px] text-slate-400">{item.supplier_email}</p>
+                </td>
+                <td className="p-4">
+                  <span className={`rounded-full px-2 py-1 text-[10px] font-bold uppercase ${
+                    item.wp_status === "publish" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
+                  }`}>
+                    {item.wp_status === "publish" ? dict.s_live : dict.s_waiting}
+                  </span>
+                </td>
+                <td className="p-4 text-right">
+                  <div className="flex justify-end gap-2">
+                    <button 
+                      onClick={() => setSelectedItem(item)} 
+                      className="bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-black hover:bg-[#108280] transition"
+                    >
+                      {dict.btn_details}
+                    </button>
+                    
+                    {item.wp_status !== "publish" ? (
+                      <button 
+                        onClick={() => handleItemAction(item.id, "approve")} 
+                        className="rounded-lg bg-green-600 px-3 py-2 text-xs font-black text-white"
+                      >
+                        {dict.btn_approve}
+                      </button>
+                    ) : null}
+
+                    <button 
+                      onClick={() => handleItemAction(item.id, "reject")} 
+                      className="rounded-lg bg-red-600 px-3 py-2 text-xs font-black text-white"
+                    >
+                      {dict.btn_delete}
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )}
+  </div>
+)}
 
         {/* SUPPLIER: MY LISTINGS */}
         {isSupplier && !isAdmin && (
@@ -521,7 +674,7 @@ export default function DashboardPage(props: any) {
               <div className="rounded-2xl bg-slate-50 p-8 text-center"><h3 className="text-xl font-black">{dict.no_listings}</h3></div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {myItems.map((item: any) => (
+                {myItems.map((item) => (
                   <div key={item.id} className="flex justify-between items-center p-6 bg-slate-50 rounded-3xl border border-slate-100 hover:bg-white hover:shadow-lg transition cursor-pointer" onClick={() => setSelectedItem(item)}>
                     <div><h4 className="font-black text-slate-800">{item.title}</h4><p className="text-[10px] font-bold text-slate-400 uppercase mt-1">Ref: {item.internal_id || item.id}</p></div>
                     <span className={`text-[10px] font-black px-3 py-1 rounded-full uppercase ${item.wp_status === "publish" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>{item.wp_status === "publish" ? `✅ ${dict.s_active}` : `⏳ ${dict.s_in_review}`}</span>
@@ -547,7 +700,7 @@ export default function DashboardPage(props: any) {
                   <tr><th className="p-4 font-black text-[10px] uppercase">{dict.t_id}</th><th className="p-4 font-black text-[10px] uppercase">{dict.t_date}</th><th className="p-4 font-black text-[10px] uppercase">{dict.t_company}</th><th className="p-4 font-black text-[10px] uppercase">{dict.t_country}</th><th className="p-4 font-black text-[10px] uppercase">{dict.t_status}</th><th className="p-4 font-black text-[10px] uppercase">{dict.t_action}</th></tr>
                 </thead>
                 <tbody className="divide-y bg-white">
-                  {visibleRequests.map((req: any) => (
+                  {visibleRequests.map((req) => (
                     <tr key={req.id} className="hover:bg-slate-50/50 transition">
                       <td className="p-4 font-black">#{req.id}</td><td className="p-4 text-slate-600">{req.date || "-"}</td><td className="p-4 font-bold">{req.company || "-"}</td><td className="p-4 text-slate-600">{req.delivery_country || "-"}</td>
                       <td className="p-4"><StatusBadge status={req.status} dict={dict} /></td>
@@ -583,7 +736,7 @@ export default function DashboardPage(props: any) {
                   </tr>
                 </thead>
                 <tbody className="divide-y bg-white">
-                  {subRequests.map((subReq: any) => (
+                  {subRequests.map((subReq) => (
                     <tr key={subReq.id} className="hover:bg-slate-50/50 transition">
                       <td className="p-4 font-black">#{subReq.id}</td>
                       <td className="p-4 text-slate-600">{subReq.date || "-"}</td>
@@ -613,39 +766,83 @@ export default function DashboardPage(props: any) {
         )}
 
         {/* ADMIN: REGISTRATIONS */}
-        {isAdmin && (
-          <div className="mb-10 rounded-[2.5rem] border border-slate-100 bg-white p-8 shadow-xl">
-             <div className="mb-6"><p className="text-xs font-black uppercase tracking-wider text-[#108280]">{dict.admin_area}</p><h2 className="text-2xl font-black">{dict.new_regs_title}</h2></div>
-             {registrations.length === 0 ? (
-               <div className="rounded-2xl bg-slate-50 p-8 text-center"><h3 className="text-xl font-black">{dict.no_regs}</h3><p className="mt-2 text-sm text-slate-500">{dict.no_regs_desc}</p></div>
-             ) : (
-               <div className="overflow-x-auto rounded-2xl border">
-                 <table className="w-full min-w-[950px] text-left text-sm">
-                   <thead className="bg-slate-950 text-white">
-                     <tr><th className="p-4 font-black text-[10px] uppercase">{dict.t_id}</th><th className="p-4 font-black text-[10px] uppercase">{dict.t_date}</th><th className="p-4 font-black text-[10px] uppercase">{dict.t_company}</th><th className="p-4 font-black text-[10px] uppercase">{dict.t_contact}</th><th className="p-4 font-black text-[10px] uppercase">{dict.t_email}</th><th className="p-4 font-black text-[10px] uppercase">{dict.t_status}</th><th className="p-4 font-black text-[10px] uppercase">{dict.t_action}</th></tr>
-                   </thead>
-                   <tbody className="divide-y bg-white">
-                     {registrations.map((reg: any) => (
-                       <tr key={reg.id} className="hover:bg-slate-50/50 transition">
-                         <td className="p-4 font-black">#{reg.id}</td><td className="p-4 text-slate-600">{reg.date}</td><td className="p-4 font-bold">{reg.company}</td><td className="p-4">{reg.contact_name}</td><td className="p-4">{reg.email}</td>
-                         <td className="p-4"><span className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase ${reg.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>{reg.status || dict.s_new}</span></td>
-                         <td className="p-4"><div className="flex flex-col gap-2">
-                           <select id={`role-${reg.id}`} defaultValue={reg.business_type === "supplier" ? "tb_supplier" : "tb_buyer"} className="rounded-lg border px-3 py-2 text-xs font-bold">
-                             <option value="tb_buyer">Buyer</option><option value="tb_supplier">Supplier</option><option value="tb_partner">Partner</option>
-                           </select>
-                           <div className="flex gap-2">
-                             <button disabled={reg.status === "approved"} onClick={() => { const s = document.getElementById(`role-${reg.id}`) as HTMLSelectElement; handleRegistrationAction(reg.id, "approve", s.value); }} className="rounded-lg bg-green-600 px-3 py-2 text-xs font-black text-white disabled:opacity-30">{dict.btn_approve}</button>
-                             <button disabled={reg.status === "approved"} onClick={() => handleRegistrationAction(reg.id, "reject")} className="rounded-lg bg-red-600 px-3 py-2 text-xs font-black text-white disabled:opacity-30">{dict.btn_reject}</button>
-                           </div>
-                         </div></td>
-                       </tr>
-                     ))}
-                   </tbody>
-                 </table>
-               </div>
-             )}
-          </div>
-        )}
+{isAdmin && (
+  <div className="mb-10 rounded-[2.5rem] border border-slate-100 bg-white p-8 shadow-xl">
+    <div className="mb-6">
+      <p className="text-xs font-black uppercase tracking-wider text-[#108280]">{dict.admin_area}</p>
+      <h2 className="text-2xl font-black">{dict.new_regs_title}</h2>
+    </div>
+    {registrations.length === 0 ? (
+      <div className="rounded-2xl bg-slate-50 p-8 text-center">
+        <h3 className="text-xl font-black">{dict.no_regs}</h3>
+        <p className="mt-2 text-sm text-slate-500">{dict.no_regs_desc}</p>
+      </div>
+    ) : (
+      <div className="overflow-x-auto rounded-2xl border">
+        <table className="w-full min-w-[1100px] text-left text-sm">
+          <thead className="bg-slate-950 text-white">
+            <tr>
+              <th className="p-4 font-black text-[10px] uppercase">{dict.t_id}</th>
+              <th className="p-4 font-black text-[10px] uppercase">{dict.t_date}</th>
+              <th className="p-4 font-black text-[10px] uppercase">{dict.t_company}</th>
+              <th className="p-4 font-black text-[10px] uppercase">{dict.t_contact}</th>
+              <th className="p-4 font-black text-[10px] uppercase">{dict.t_email}</th>
+              <th className="p-4 font-black text-[10px] uppercase">{dict.t_vat}</th>
+              <th className="p-4 font-black text-[10px] uppercase">{dict.t_reg_country}</th>
+              <th className="p-4 font-black text-[10px] uppercase">{dict.t_status}</th>
+              <th className="p-4 font-black text-[10px] uppercase">{dict.t_action}</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y bg-white">
+            {registrations.map((reg) => (
+              <tr key={reg.id} className="hover:bg-slate-50/50 transition">
+                <td className="p-4 font-black">#{reg.id}</td>
+                <td className="p-4 text-slate-600">{reg.date}</td>
+                <td className="p-4 font-bold">{reg.company}</td>
+                <td className="p-4">{reg.contact_name}</td>
+                <td className="p-4">{reg.email}</td>
+                <td className="p-4 font-mono text-slate-600">{reg.vat || "-"}</td>
+                <td className="p-4 text-slate-600">{reg.country || "-"}</td>
+                <td className="p-4">
+                  <span className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase 
+                    ${reg.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>
+                    {reg.status || dict.s_new}
+                  </span>
+                </td>
+                <td className="p-4">
+                  <div className="flex flex-col gap-2">
+                    <select id={`role-${reg.id}`} 
+                      defaultValue={reg.business_type === "supplier" ? "tb_supplier" : "tb_buyer"} 
+                      className="rounded-lg border px-3 py-2 text-xs font-bold">
+                      <option value="tb_buyer">Buyer</option>
+                      <option value="tb_supplier">Supplier</option>
+                      <option value="tb_partner">Partner</option>
+                    </select>
+                    <div className="flex gap-2">
+                      <button disabled={reg.status === "approved"}
+                        onClick={() => { 
+                          const s = document.getElementById(`role-${reg.id}`) as HTMLSelectElement; 
+                          handleRegistrationAction(reg.id, "approve", s.value); 
+                        }} 
+                        className="rounded-lg bg-green-600 px-3 py-2 text-xs font-black text-white disabled:opacity-30">
+                        {dict.btn_approve}
+                      </button>
+                      <button disabled={reg.status === "approved"}
+                        onClick={() => handleRegistrationAction(reg.id, "reject")} 
+                        className="rounded-lg bg-red-600 px-3 py-2 text-xs font-black text-white disabled:opacity-30">
+                        {dict.btn_reject}
+                      </button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )}
+  </div>
+)}
 
         <button onClick={() => { localStorage.clear(); window.location.href = `/${lang}/login`; }} className="mt-4 rounded-xl bg-slate-950 px-6 py-3 font-black text-white hover:bg-slate-800 transition">
           {dict.logout}
@@ -655,7 +852,7 @@ export default function DashboardPage(props: any) {
   );
 }
 
-function DashboardCard({ title, text, href, icon }: any) {
+function DashboardCard({ title, text, href, icon }: { title: string; text: string; href: string; icon: string }) {
   return (
     <Link href={href} className="group rounded-[2rem] border border-slate-100 bg-white p-8 shadow-sm transition-all hover:shadow-xl hover:-translate-y-1">
       <div className="text-3xl mb-4 grayscale group-hover:grayscale-0 transition-all">{icon}</div>

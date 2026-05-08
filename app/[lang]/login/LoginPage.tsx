@@ -72,7 +72,7 @@ export default function LoginPage({ dict, lang }: { dict: any; lang: string }) {
 
         <div className="mb-8 flex justify-center">
           <Image
-            src="/poze/logo.jpeg"
+            src="/poze/logo.png"
             alt="TrustBridge Logo"
             width={180}
             height={60}

@@ -40,7 +40,7 @@ export default function Footer({
           <div>
             <div className="flex items-center gap-4">
               <img
-                src="/poze/logo.jpeg"
+                src="/poze/logo.png"
                 alt="TrustBridge Logo"
                 className="h-16 w-auto object-contain"
               />

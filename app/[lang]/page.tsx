@@ -17,7 +17,9 @@ export default async function HomePage({
   // 2. Fetch direct de pe server (fără cache pentru a fi la fel de proaspăt ca Marketplace)
   let items = [];
   try {
-    const res = await fetch(API_URL, { cache: "no-store" });
+    const res = await fetch(`${API_URL}?lang=${lang}`, {
+  cache: "no-store",
+});
     if (res.ok) {
       const data = await res.json();
       items = Array.isArray(data) ? data : [];

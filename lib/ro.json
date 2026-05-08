@@ -159,9 +159,10 @@
     { "val": "supplier", "label": "Transport prin furnizor" }
   ],
   "conf_opts": [
-    { "val": "direct", "label": "Contact direct cu furnizorul permis" },
-    { "val": "trustbridge", "label": "Doar prin TrustBridge" }
-  ],
+      { "val": "direct", "label": "Contact direct cu furnizorul permis" },
+      { "val": "anonymous", "label": "Trimite cererea anonim" },
+      { "val": "trustbridge", "label": "Doar prin TrustBridge" }
+    ],
   "privacy_label": "Sunt de acord cu politica de confidențialitate *",
   "btn_send": "TRIMITE CEREREA",
   "btn_sending": "SE TRIMITE...",

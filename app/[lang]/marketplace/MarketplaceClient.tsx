@@ -154,7 +154,9 @@ export default function MarketplacePage({
   useEffect(() => {
     async function loadItems() {
       try {
-        const res = await fetch(`${API}/items`, { cache: "no-store" });
+       const res = await fetch(`${API}/items?lang=${lang}`, {
+  cache: "no-store",
+});
         const data = await res.json();
         setItems(Array.isArray(data) ? data : []);
       } catch (error) {

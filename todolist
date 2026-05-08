@@ -1,7 +1,7 @@
 Uber uns [X]
 Kontakt [x]
 sa mearga pe email email in limba fiecarui furnizor
-Produktfreigabe (Dashboard) 
+Produktfreigabe (Dashboard) [x]
 pretul covertit [x]
 footer[x]
 formularul Ofera [x]
@@ -14,3 +14,36 @@ formular de contact []
 
 request 3 limbi[x]
 pw: ,+xAYdjCe$*+*7xM
+
+
+- Cerere de achiziție lipseste jos la transport (ro) [x]
+
+- Toate mesajele sa mearga la fiecare furnizor in limba lui
+
+- produsul pus pe pagina sa fie tradus in fiecare limba, HU,DE,RO  [x]
+
+- CATEGORIA SI DESCRIREA TOT SA FIE TRADUS [x]
+
+-la inregistrare adminul nu primeste email cu crerea de inregistrare [x]
+
+-la primirea mesajului de inregistrare sa apara si link unde se poate login  [X]
+
+
+-la nu sa gasit produsul, sa mearga mesajul in limba care doreste adminul 
+        - nu merge statusul doar la Rol: tb_supplier 
+        - nu afiseaza statusul la persoana care a pus intrebarea Rol: tb_supplier
+        - nu afiseaza cererea ( intrebarea) Rol: tb_supplier
+
+- nu apar cereriile de la /offer-create in dashboard admin ( in backend apare) []
+
+- nu apare in tb_supplier cererea depusa( pentru produs)
+
+- pe pagina de home, nu se schimba produsele, sau nu se sterg nu se adauga alte noi ca si pe pagina de marketplace [x]
+
+- Confirmare cerere TrustBridge #138
+        TrustBridge <info@trustbridgeb2b.com>
+            10:01 (0 minutes ago)
+        to me
+        Am primit cererea dvs. ID cerere: 138. Echipa TrustBridge o va analiza. ( trebuie in limba clientului)
+
+-Ofertă nouă pentru cererea dvs. #139 in limba clientului cu pretul transformat in forint ron sau euro
