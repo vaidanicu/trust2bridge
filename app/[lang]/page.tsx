@@ -14,6 +14,7 @@ export default async function HomePage({
 
   return (
     <main className="min-h-screen bg-[#f4f6f8] text-slate-900">
+      {/* 1. HERO SECTION */}
       <section className="relative overflow-hidden bg-[url('/poze/Background.png')] bg-cover bg-center">
         <div className="absolute inset-0 bg-gradient-to-r from-[#0b5f5d]/95 via-[#108280]/85 to-[#0a3f3e]/90" />
 
@@ -70,7 +71,8 @@ export default async function HomePage({
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-7xl grid-cols-1 gap-6 px-6 py-8 lg:grid-cols-[280px_1fr]">
+      {/* 2. MARKETPLACE AREA (Produsele și Căutarea apar acum imediat după Hero) */}
+      <section className="mx-auto grid max-w-7xl grid-cols-1 gap-6 px-6 py-12 lg:grid-cols-[280px_1fr]">
         <aside className="h-fit overflow-hidden rounded-2xl border bg-white shadow-sm">
           <div className="border-b bg-slate-950 px-5 py-4 text-sm font-black uppercase tracking-wider text-white">
             {dict.home.categories_label}
@@ -90,23 +92,23 @@ export default async function HomePage({
 
         <div className="space-y-6">
           <form
-  action={`/${lang}/marketplace`}
-  method="GET"
-  className="flex overflow-hidden rounded-2xl border bg-white shadow-sm"
->
-  <input
-    name="q"
-    placeholder={dict.home.search_placeholder}
-    className="w-full px-5 py-4 text-sm outline-none"
-  />
+            action={`/${lang}/marketplace`}
+            method="GET"
+            className="flex overflow-hidden rounded-2xl border bg-white shadow-sm"
+          >
+            <input
+              name="q"
+              placeholder={dict.home.search_placeholder}
+              className="w-full px-5 py-4 text-sm outline-none"
+            />
 
-  <button
-    type="submit"
-    className="flex items-center bg-orange-400 px-7 py-4 text-sm font-black uppercase text-white transition hover:bg-orange-500"
-  >
-    {dict.home.search_button}
-  </button>
-</form>
+            <button
+              type="submit"
+              className="flex items-center bg-orange-400 px-7 py-4 text-sm font-black uppercase text-white transition hover:bg-orange-500"
+            >
+              {dict.home.search_button}
+            </button>
+          </form>
 
           <div className="grid gap-4 md:grid-cols-3">
             <Link
@@ -152,6 +154,7 @@ export default async function HomePage({
             </div>
           </div>
 
+          {/* PRODUSELE RECOMANDATE */}
           <div className="rounded-2xl border bg-white p-5 shadow-sm">
             <div className="flex items-center justify-between gap-4 border-b pb-4">
               <div>
@@ -181,6 +184,63 @@ export default async function HomePage({
             >
               {dict.home.view_all}
             </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* 3. ABOUT SECTION (Mutat la final) */}
+      <section className="bg-white py-20">
+        <div className="mx-auto max-w-7xl px-6">
+          <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
+            <div>
+              <div className="mb-4 inline-block rounded-full bg-[#108280]/10 px-4 py-2 text-xs font-black uppercase tracking-wider text-[#108280]">
+                {dict.home.about_badge}
+              </div>
+
+              <h2 className="text-3xl font-black leading-tight text-slate-950 md:text-4xl">
+                {dict.home.about_title}
+              </h2>
+
+              <p className="mt-6 text-lg leading-8 text-slate-600">
+                {dict.home.about_text_1}
+              </p>
+
+              <p className="mt-5 text-lg leading-8 text-slate-600">
+                {dict.home.about_text_2}
+              </p>
+
+              <p className="mt-5 text-lg leading-8 text-slate-600">
+                {dict.home.about_text_3}
+              </p>
+            </div>
+
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#108280] to-[#0b5f5d] p-10 text-white shadow-2xl">
+              <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-cyan-400/20 blur-3xl" />
+              <div className="absolute -bottom-10 -left-10 h-40 w-40 rounded-full bg-yellow-300/20 blur-3xl" />
+
+              <div className="relative z-10 grid gap-8 sm:grid-cols-3 lg:grid-cols-1">
+                <div>
+                  <p className="text-5xl font-black">35+</p>
+                  <p className="mt-2 text-sm font-semibold text-white/80">
+                    {dict.home.about_stat_1}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-5xl font-black">100+</p>
+                  <p className="mt-2 text-sm font-semibold text-white/80">
+                    {dict.home.about_stat_2}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-4xl font-black">B2B</p>
+                  <p className="mt-2 text-sm font-semibold text-white/80">
+                    {dict.home.about_stat_3}
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>

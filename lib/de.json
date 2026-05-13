@@ -42,7 +42,17 @@
     "action_auction_title": "Online-Auktion",
     "action_auction_desc": "Auktionen werden später ergänzt.",
     "featured_title": "Hit Angebote de Woche",
-    "view_all": "Alle ansehen"
+    "view_all": "Alle ansehen",
+    "featured_title": "Hit Angebote der Woche",
+    "view_all": "Alle ansehen",
+    "about_badge": "Wer wir sind",
+    "about_title": "Internationale Geschäftserfahrung trifft moderne B2B-Digitalisierung",
+    "about_text_1": "Hinter dem Portal steht ein internationales Team erfahrener Geschäftsleute mit umfassender Praxiskenntnis in Unternehmensbewertung, Qualitätsmanagement und internationalen Netzwerken.",
+    "about_text_2": "Der Initiator und Entwickler des Portals verfügt über mehr als 35 Jahre Erfahrung als Lead-Auditor und hat im Rahmen zahlreicher Audits und Unternehmensbewertungen hunderte Firmen unterschiedlichster Branchen und Kulturräume analysiert.",
+    "about_text_3": "Mit diesem Portal möchten wir dazu beitragen, kulturelle Hürden, Unsicherheiten gegenüber unbekannten Geschäftspartnern und Herausforderungen der digitalen Beschaffung zu reduzieren – durch mehr Transparenz, bessere Vertrauensbildung und eine verlässlichere Grundlage für internationale Geschäftsbeziehungen.",
+    "about_stat_1": "Jahre Erfahrung als Lead-Auditor",
+    "about_stat_2": "Analysierte Unternehmen",
+    "about_stat_3": "Internationale Geschäftsbeziehungen"
   },
   "marketplace": {
     "badge": "TrustBridge Beschaffung",
@@ -255,7 +265,7 @@
     { "val": "request", "label": "Preis auf Anfrage" },
     { "val": "market", "label": "Tagespreis" }
   ],
-  "label_location_city: ":"Ware/Dienstleistung in: (nur Stadt nennen)",
+  "label_location_city": "Ware/Dienstleistung in: (nur Stadt nennen)",
   "label_price": "Preis",
   "label_currency": "Währung",
   "label_price_per": "Preis gilt pro",

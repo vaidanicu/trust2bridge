@@ -42,7 +42,16 @@
     "action_auction_title": "Online Árverés",
     "action_auction_desc": "Az árverések később kerülnek hozzáadásra.",
     "featured_title": "A hét legjobb ajánlatai",
-    "view_all": "Összes megtekintése"
+    "view_all": "Összes megtekintése",
+    "about_badge": "Kik vagyunk",
+"about_title": "Nemzetközi üzleti tapasztalat és modern B2B digitalizáció",
+"about_text_1": "A portál mögött tapasztalt üzletemberekből álló nemzetközi csapat áll, akik széles körű gyakorlati tapasztalattal rendelkeznek a vállalatértékelés, a minőségirányítás és a nemzetközi üzleti kapcsolatok területén.",
+"about_text_2": "A portál kezdeményezője és fejlesztője több mint 35 éves vezető auditóri tapasztalattal rendelkezik, és számos audit, illetve vállalatértékelés során különböző iparágakból és kulturális környezetekből származó vállalatok százait elemezte.",
+"about_text_3": "Ezzel a portállal célunk, hogy hozzájáruljunk a kulturális különbségekből, az ismeretlen üzleti partnerekkel szembeni bizalomhiányból és a beszerzési folyamatok digitalizációjából eredő akadályok csökkentéséhez – nagyobb átláthatóság, erősebb bizalomépítés és megbízhatóbb alapok biztosítása révén.",
+"about_stat_1": "Év vezető auditóri tapasztalat",
+"about_stat_2": "Elemzett vállalat",
+"about_stat_3": "Nemzetközi üzleti kapcsolatok"
+
   },
   "marketplace": {
     "badge": "TrustBridge Beszerzés",

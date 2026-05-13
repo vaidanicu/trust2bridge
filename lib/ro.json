@@ -42,7 +42,15 @@
     "action_auction_title": "Licitație Online",
     "action_auction_desc": "Licitațiile vor fi adăugate ulterior.",
     "featured_title": "Ofertele Hit ale Săptămânii",
-    "view_all": "Vezi toate"
+    "view_all": "Vezi toate",
+    "about_badge": "Cine suntem",
+"about_title": "Experiență internațională de afaceri și digitalizare modernă B2B",
+"about_text_1": "În spatele portalului se află o echipă internațională de oameni de afaceri cu experiență, având cunoștințe practice vaste inclusiv în evaluarea companiilor, managementul calității și dezvoltarea rețelelor internaționale.",
+"about_text_2": "Inițiatorul și dezvoltatorul portalului are peste 35 de ani de experiență ca lead auditor și a analizat sute de companii din diferite domenii și medii culturale în cadrul numeroaselor audituri și evaluări de companii.",
+"about_text_3": "Prin acest portal dorim să contribuim la reducerea obstacolelor culturale, a lipsei de încredere față de partenerii necunoscuți și a provocărilor generate de digitalizarea proceselor de achiziții – prin mai multă transparență, consolidarea încrederii și o bază mai sigură pentru relațiile comerciale internaționale.",
+"about_stat_1": "Ani experiență ca lead auditor",
+"about_stat_2": "Companii analizate",
+"about_stat_3": "Relații comerciale internaționale"
   },
   "marketplace": {
     "badge": "TrustBridge Aprovizionare",
