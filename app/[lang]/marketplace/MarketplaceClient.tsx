@@ -442,7 +442,7 @@ export default function MarketplacePage({
               </h4>
 
               <Link
-                href={`/${lang}/guided-request`}
+                href={`/${lang}/marketplace/?smart=1`}
                 className="mt-4 block rounded-lg bg-[#108280] p-3 text-center text-xs font-black uppercase hover:bg-[#0d6b69] transition-colors"
               >
                 Guided Request →
@@ -612,13 +612,13 @@ export default function MarketplacePage({
                 </form>
               </div>
             ) : (
-              <div className="grid gap-8 md:grid-cols-2">
+              <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-2">
                 {filteredItems.map((item) => (
                   <article
                     key={item.id}
-                    className="group flex flex-col rounded-3xl border-4 border-slate-900 bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-1 hover:translate-y-1 hover:shadow-none overflow-hidden"
+                    className="group flex flex-col rounded-2xl border-2 border-slate-900 bg-white shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-1 hover:translate-y-1 hover:shadow-none overflow-hidden"
                   >
-                    <div className="relative h-56 w-full border-b-4 border-slate-900 bg-slate-50">
+                    <div className="relative h-40 w-full border-b-2 border-slate-900 bg-slate-50">
                       {item.image ? (
                         <img
                           src={item.image}
@@ -638,14 +638,14 @@ export default function MarketplacePage({
                       </div>
                     </div>
 
-                    <div className="flex flex-col flex-1 p-6">
+                    <div className="flex flex-col flex-1 p-4">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
                           <p className="text-[10px] font-black uppercase tracking-widest text-[#108280]">
                             {item.category || item.type || "Allgemein"}
                           </p>
 
-                          <h3 className="mt-1 text-2xl font-black leading-tight text-slate-900 group-hover:text-[#108280] transition-colors line-clamp-2 uppercase italic">
+                          <h3 className="mt-1 text-lg font-black leading-tight text-slate-900 group-hover:text-[#108280] transition-colors line-clamp-2 uppercase italic">
                             {item.title}
                           </h3>
                         </div>
@@ -653,7 +653,7 @@ export default function MarketplacePage({
                         <div className="text-right">{renderItemPrice(item)}</div>
                       </div>
 
-                      <p className="mt-4 line-clamp-3 text-sm font-medium leading-relaxed text-slate-500">
+                      <p className="mt-3 line-clamp-2 text-xs font-medium leading-relaxed text-slate-500">
                         {item.description || dict.marketplace?.no_description}
                       </p>
 
@@ -669,8 +669,8 @@ export default function MarketplacePage({
                         />
                       </div>
 
-                      <div className="mt-6 flex items-stretch gap-3">
-                        <div className="flex-1 min-h-[56px] flex">
+                      <div className="mt-5 grid gap-3">
+  <div className="w-full">
                           <AddToRequestButton
                             item={item}
                             dict={dict}
@@ -680,7 +680,7 @@ export default function MarketplacePage({
 
                         <Link
                           href={`/${lang}/details?id=${item.id}`}
-                          className="flex-1 flex items-center justify-center min-h-[56px] rounded-xl border-2 border-slate-900 bg-white px-4 py-2 text-center text-xs font-black uppercase transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none active:bg-slate-50"
+                         className="flex h-[52px] items-center justify-center rounded-xl border-2 border-slate-900 bg-white px-3 text-center text-xs font-black uppercase transition-all shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none active:bg-slate-50"
                         >
                           {dict.marketplace?.details_btn || "Details"}
                         </Link>

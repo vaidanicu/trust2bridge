@@ -123,7 +123,7 @@ export default function Footer({
 
             <div className="mt-5 space-y-4 text-sm">
               <p className="font-bold">
-                {f.email}: office@trustbridgeb2b.com
+                {f.email}: info@trustbridgeb2b.com
               </p>
 
               <p className="text-white/60">

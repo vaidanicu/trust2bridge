@@ -68,8 +68,12 @@ interface RequestData {
   custom_quantity?: string;
   custom_message?: string;
   offer_price?: string;
+  offer_currency?: "EUR" | "HUF" | "RON" | string;
   offer_delivery_time?: string;
+  offer_terms?: string;
   offer_message?: string;
+  customer_decision?: "accepted" | "rejected" | string;
+customer_decision_message?: string;
 }
 
 const translations = {
@@ -102,8 +106,10 @@ const translations = {
     note: "Bemerkung",
     offerReceived: "Angebot erhalten",
     supplierOffer: "Lieferantenangebot",
+    decisionSaved: "Die Entscheidung wurde gespeichert.",
     priceOffer: "Preis / Angebot",
     deliveryTime: "Lieferzeit",
+    terms: "Bedingungen",
     message: "Nachricht",
     overview: "Übersicht",
     requestData: "Anfragedaten",
@@ -127,6 +133,26 @@ const translations = {
     pricePlaceholder: "Preis / Angebot *",
     deliveryPlaceholder: "Lieferzeit, z. B. 7-10 Tage",
     messagePlaceholder: "Nachricht / Bedingungen",
+    currency: "Währung",
+    deliveryChoose: "Lieferzeit wählen",
+    termsChoose: "Bedingungen wählen",
+    extraMessage: "Zusätzliche Nachricht",
+    deliveryOptions: [
+  { value: "1_3_days", label: "1-3 Tage" },
+  { value: "4_7_days", label: "4-7 Tage" },
+  { value: "7_10_days", label: "7-10 Tage" },
+  { value: "10_14_days", label: "10-14 Tage" },
+  { value: "2_4_weeks", label: "2-4 Wochen" },
+  { value: "agreement", label: "Nach Vereinbarung" },
+],
+    termOptions: [
+  { value: "price_includes_delivery", label: "Preis inklusive Lieferung" },
+  { value: "price_excludes_delivery", label: "Preis exklusive Lieferung" },
+  { value: "bank_transfer", label: "Zahlung per Überweisung" },
+  { value: "delivery_after_payment", label: "Lieferung nach Zahlungseingang" },
+  { value: "valid_7_days", label: "Angebot gültig 7 Tage" },
+  { value: "valid_14_days", label: "Angebot gültig 14 Tage" },
+],
     notReleased: "Noch nicht freigegeben",
     notReleasedText: "Diese Anfrage wurde noch nicht von TrustBridge zur Angebotsabgabe freigegeben.",
     nextStep: "Nächster Schritt",
@@ -141,6 +167,14 @@ const translations = {
     updateError: "Fehler beim Aktualisieren.",
     offerSent: "Angebot wurde gesendet.",
     loadingSupplier: "Lade Anbieterdaten...",
+    customerDecision: "Entscheidung des Kunden",
+    decisionMessage: "Nachricht / Bemerkung",
+    wantHotel: "Ich wünsche Hotel",
+    wantTransport: "Ich wünsche zusätzlichen Transport",
+    wantCustoms: "Ich wünsche Zollhilfe",
+    wantInsurance: "Ich wünsche Versicherung",
+    acceptOffer: "Angebot akzeptieren",
+    rejectOffer: "Angebot ablehnen",
     statuses: {
       pending_review: "Wartet auf Prüfung",
       nou: "Neu",
@@ -153,6 +187,15 @@ const translations = {
     },
   },
   ro: {
+   customerDecision: "Decizia clientului",
+    decisionMessage: "Mesaj / observație",
+    wantHotel: "Doresc hotel",
+    wantTransport: "Doresc transport suplimentar",
+    wantCustoms: "Doresc ajutor vamal",
+    wantInsurance: "Doresc asigurare",
+    acceptOffer: "Accept oferta",
+    rejectOffer: "Refuz oferta",
+    decisionSaved: "Decizia a fost salvată.",
     loadingRequest: "Se încarcă cererea...",
     loadingPage: "Se încarcă pagina...",
     notFound: "Cererea nu a fost găsită.",
@@ -183,6 +226,7 @@ const translations = {
     supplierOffer: "Oferta furnizorului",
     priceOffer: "Preț / Ofertă",
     deliveryTime: "Timp livrare",
+    terms: "Condiții",
     message: "Mesaj",
     overview: "Prezentare",
     requestData: "Datele cererii",
@@ -206,6 +250,26 @@ const translations = {
     pricePlaceholder: "Preț / Ofertă *",
     deliveryPlaceholder: "Timp livrare, ex. 7-10 zile",
     messagePlaceholder: "Mesaj / Condiții",
+    currency: "Monedă",
+    deliveryChoose: "Alege timpul de livrare",
+    termsChoose: "Alege condițiile",
+    extraMessage: "Mesaj suplimentar",
+    deliveryOptions: [
+  { value: "1_3_days", label: "1-3 zile" },
+  { value: "4_7_days", label: "4-7 zile" },
+  { value: "7_10_days", label: "7-10 zile" },
+  { value: "10_14_days", label: "10-14 zile" },
+  { value: "2_4_weeks", label: "2-4 săptămâni" },
+  { value: "agreement", label: "După acord" },
+],
+   termOptions: [
+  { value: "price_includes_delivery", label: "Preț cu livrare inclusă" },
+  { value: "price_excludes_delivery", label: "Preț fără livrare" },
+  { value: "bank_transfer", label: "Plată prin transfer bancar" },
+  { value: "delivery_after_payment", label: "Livrare după primirea plății" },
+  { value: "valid_7_days", label: "Ofertă valabilă 7 zile" },
+  { value: "valid_14_days", label: "Ofertă valabilă 14 zile" },
+],
     notReleased: "Încă nu este aprobată",
     notReleasedText: "Această cerere nu a fost încă aprobată de TrustBridge pentru transmiterea unei oferte.",
     nextStep: "Următorul pas",
@@ -231,7 +295,15 @@ const translations = {
       rejected: "Respins",
     },
   },
-  hu: {
+  hu: {customerDecision: "Ügyfél döntése",
+decisionMessage: "Üzenet / megjegyzés",
+wantHotel: "Szállást kérek",
+wantTransport: "További szállítást kérek",
+wantCustoms: "Vámügyintézési segítséget kérek",
+wantInsurance: "Biztosítást kérek",
+acceptOffer: "Ajánlat elfogadása",
+rejectOffer: "Ajánlat elutasítása",
+decisionSaved: "A döntés mentve.",
     loadingRequest: "Ajánlatkérés betöltése...",
     loadingPage: "Oldal betöltése...",
     notFound: "Az ajánlatkérés nem található.",
@@ -262,6 +334,7 @@ const translations = {
     supplierOffer: "Beszállítói ajánlat",
     priceOffer: "Ár / Ajánlat",
     deliveryTime: "Szállítási idő",
+    terms: "Feltételek",
     message: "Üzenet",
     overview: "Áttekintés",
     requestData: "Ajánlatkérés adatai",
@@ -285,6 +358,26 @@ const translations = {
     pricePlaceholder: "Ár / Ajánlat *",
     deliveryPlaceholder: "Szállítási idő, pl. 7-10 nap",
     messagePlaceholder: "Üzenet / Feltételek",
+    currency: "Pénznem",
+    deliveryChoose: "Szállítási idő kiválasztása",
+    termsChoose: "Feltételek kiválasztása",
+    extraMessage: "További üzenet",
+    deliveryOptions: [
+  { value: "1_3_days", label: "1-3 nap" },
+  { value: "4_7_days", label: "4-7 nap" },
+  { value: "7_10_days", label: "7-10 nap" },
+  { value: "10_14_days", label: "10-14 nap" },
+  { value: "2_4_weeks", label: "2-4 hét" },
+  { value: "agreement", label: "Megállapodás szerint" },
+],
+   termOptions: [
+  { value: "price_includes_delivery", label: "Az ár tartalmazza a szállítást" },
+  { value: "price_excludes_delivery", label: "Az ár nem tartalmazza a szállítást" },
+  { value: "bank_transfer", label: "Fizetés banki átutalással" },
+  { value: "delivery_after_payment", label: "Szállítás fizetés beérkezése után" },
+  { value: "valid_7_days", label: "Ajánlat érvényes 7 napig" },
+  { value: "valid_14_days", label: "Ajánlat érvényes 14 napig" },
+],
     notReleased: "Még nincs jóváhagyva",
     notReleasedText: "Ezt az ajánlatkérést a TrustBridge még nem hagyta jóvá ajánlattételre.",
     nextStep: "Következő lépés",
@@ -315,6 +408,57 @@ const translations = {
 type T = (typeof translations)["de"];
 
 const supplierCache: Record<string, SupplierInfo | null> = {};
+
+function normalizeCountry(value: any) {
+  const v = String(value || "")
+    .toLowerCase()
+    .replace("romu00e2nia", "romania")
+    .replace("rumu00e4nien", "rumanien")
+    .replace("românia", "romania")
+    .replace("rumänien", "rumanien")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+  if (["romania", "rumanien", "ro"].includes(v)) return "romania";
+  if (["deutschland", "germany", "de"].includes(v)) return "germany";
+  if (["ungarn", "hungary", "hu"].includes(v)) return "hungary";
+  if (["osterreich", "austria", "at"].includes(v)) return "austria";
+  if (["schweiz", "switzerland", "ch"].includes(v)) return "switzerland";
+
+  return v;
+}
+
+function translateCountry(value: any, lang: string) {
+  const key = normalizeCountry(value);
+
+  const labels: any = {
+    de: {
+      romania: "Rumänien",
+      germany: "Deutschland",
+      hungary: "Ungarn",
+      austria: "Österreich",
+      switzerland: "Schweiz",
+    },
+    ro: {
+      romania: "România",
+      germany: "Germania",
+      hungary: "Ungaria",
+      austria: "Austria",
+      switzerland: "Elveția",
+    },
+    hu: {
+      romania: "Románia",
+      germany: "Németország",
+      hungary: "Magyarország",
+      austria: "Ausztria",
+      switzerland: "Svájc",
+    },
+  };
+
+  return labels[lang]?.[key] || value || "-";
+}
+
+
 
 async function fetchSupplierInfo(supplierId: string | number): Promise<SupplierInfo | null> {
   const key = String(supplierId);
@@ -399,6 +543,57 @@ function SupplierCard({ item, t }: { item: EnrichedItem; t: T }) {
     </div>
   );
 }
+
+function deliveryLabelToValue(value?: string) {
+  const map: Record<string, string> = {
+    "1-3 Tage": "1_3_days",
+    "1-3 zile": "1_3_days",
+    "1-3 nap": "1_3_days",
+    "4-7 Tage": "4_7_days",
+    "4-7 zile": "4_7_days",
+    "4-7 nap": "4_7_days",
+    "7-10 Tage": "7_10_days",
+    "7-10 zile": "7_10_days",
+    "7-10 nap": "7_10_days",
+    "10-14 Tage": "10_14_days",
+    "10-14 zile": "10_14_days",
+    "10-14 nap": "10_14_days",
+    "2-4 Wochen": "2_4_weeks",
+    "2-4 săptămâni": "2_4_weeks",
+    "2-4 hét": "2_4_weeks",
+    "Nach Vereinbarung": "agreement",
+    "După acord": "agreement",
+    "Megállapodás szerint": "agreement",
+  };
+
+  return map[value || ""] || value || "";
+}
+
+function termsLabelToValue(value?: string) {
+  const map: Record<string, string> = {
+    "Preis inklusive Lieferung": "price_includes_delivery",
+    "Preț cu livrare inclusă": "price_includes_delivery",
+    "Az ár tartalmazza a szállítást": "price_includes_delivery",
+    "Preis exklusive Lieferung": "price_excludes_delivery",
+    "Preț fără livrare": "price_excludes_delivery",
+    "Az ár nem tartalmazza a szállítást": "price_excludes_delivery",
+    "Zahlung per Überweisung": "bank_transfer",
+    "Plată prin transfer bancar": "bank_transfer",
+    "Fizetés banki átutalással": "bank_transfer",
+    "Lieferung nach Zahlungseingang": "delivery_after_payment",
+    "Livrare după primirea plății": "delivery_after_payment",
+    "Szállítás fizetés beérkezése után": "delivery_after_payment",
+    "Angebot gültig 7 Tage": "valid_7_days",
+    "Ofertă valabilă 7 zile": "valid_7_days",
+    "Ajánlat érvényes 7 napig": "valid_7_days",
+    "Angebot gültig 14 Tage": "valid_14_days",
+    "Ofertă valabilă 14 zile": "valid_14_days",
+    "Ajánlat érvényes 14 napig": "valid_14_days",
+  };
+
+  return map[value || ""] || value || "";
+}
+
 
 function RequestDetailsContent() {
   const searchParams = useSearchParams();
@@ -489,7 +684,10 @@ function RequestDetailsContent() {
       <main className="min-h-screen bg-[#f4f6f8] px-6 py-16">
         <div className="mx-auto max-w-3xl rounded-3xl border bg-white p-10 text-center shadow-sm">
           <h1 className="text-2xl font-black">{t.notFound}</h1>
-          <Link href={`/${lang}/dashboard`} className="mt-6 inline-block rounded-xl bg-[#108280] px-6 py-3 font-black text-white">
+          <Link
+            href={`/${lang}/dashboard`}
+            className="mt-6 inline-block rounded-xl bg-[#108280] px-6 py-3 font-black text-white"
+          >
             {t.backDashboard}
           </Link>
         </div>
@@ -505,7 +703,15 @@ function RequestDetailsContent() {
     user?.roles?.includes("TrustBridge_Supplier");
 
   const isAdmin = role === "administrator";
-  const hasOffer = Boolean(requestData.offer_price || requestData.offer_message);
+
+  const hasOffer = Boolean(
+    requestData.offer_price ||
+    requestData.offer_delivery_time ||
+    requestData.offer_terms ||
+    requestData.offer_message
+    
+  );
+const hasCustomerDecision = Boolean(requestData.customer_decision);
   const isSubRequest = Boolean(requestData.parent_request);
 
   const supplierCanOffer =
@@ -514,9 +720,13 @@ function RequestDetailsContent() {
 
   return (
     <main className="min-h-screen bg-[#f4f6f8] text-slate-900">
+      {/* Header */}
       <section className="bg-gradient-to-r from-[#0b5f5d] via-[#108280] to-[#0a3f3e] px-6 py-12 text-white">
         <div className="mx-auto max-w-7xl">
-          <Link href={`/${lang}/dashboard`} className="text-sm font-bold text-white/80 hover:text-white">
+          <Link
+            href={`/${lang}/dashboard`}
+            className="text-sm font-bold text-white/80 hover:text-white"
+          >
             ← {t.backDashboard}
           </Link>
 
@@ -533,8 +743,11 @@ function RequestDetailsContent() {
         </div>
       </section>
 
+      {/* Content */}
       <section className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-6 py-8 lg:grid-cols-[1fr_380px]">
+        {/* Left column */}
         <div className="space-y-6">
+          {/* Products card */}
           <div className="rounded-3xl border bg-white p-6 shadow-sm">
             <p className="text-xs font-black uppercase tracking-wider text-[#108280]">
               {t.positions}
@@ -559,32 +772,29 @@ function RequestDetailsContent() {
                   </div>
 
                   <div className="mt-5 rounded-2xl bg-white p-5">
-                    <p className="text-xs font-black uppercase text-slate-500">
-                      {t.description}
-                    </p>
+                    <p className="text-xs font-black uppercase text-slate-500">{t.description}</p>
                     <p className="mt-2 whitespace-pre-line text-sm font-semibold leading-7 text-slate-800">
                       {requestData.custom_message || "-"}
                     </p>
                   </div>
                 </div>
               ) : (
-                <p className="mt-5 rounded-2xl bg-slate-50 p-6 text-slate-500">
-                  {t.noProducts}
-                </p>
+                <p className="mt-5 rounded-2xl bg-slate-50 p-6 text-slate-500">{t.noProducts}</p>
               )
             ) : (
               <div className="mt-6 space-y-5">
                 {items.map((item, index) => (
-                  <div key={`${item.id}-${index}`} className="rounded-2xl border bg-white p-5 transition hover:shadow-md">
+                  <div
+                    key={`${item.id}-${index}`}
+                    className="rounded-2xl border bg-white p-5 transition hover:shadow-md"
+                  >
                     <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                       <div className="flex-1">
                         <span className="rounded-full bg-[#108280]/10 px-3 py-1 text-xs font-black text-[#108280]">
                           {t.position} {index + 1}
                         </span>
 
-                        <h3 className="mt-3 text-xl font-black">
-                          {item.title || t.product}
-                        </h3>
+                        <h3 className="mt-3 text-xl font-black">{item.title || t.product}</h3>
 
                         <p className="mt-2 text-sm text-slate-500">
                           {t.internalId}: {item.internal_id || "-"} · {t.category}:{" "}
@@ -592,7 +802,8 @@ function RequestDetailsContent() {
                         </p>
 
                         <p className="text-sm text-slate-500">
-                          {t.country}: {item.country || "-"}
+                          {t.country}:{" "}
+                          {translateCountry(item.country || requestData.delivery_country, lang)}
                         </p>
 
                         <SupplierCard item={item} t={t} />
@@ -606,7 +817,10 @@ function RequestDetailsContent() {
                     </div>
 
                     <div className="mt-5 grid gap-4 md:grid-cols-2">
-                      <InfoBox label={t.quantity} value={`${item.quantity || "1"} ${item.unit || ""}`} />
+                      <InfoBox
+                        label={t.quantity}
+                        value={`${item.quantity || "1"} ${item.unit || ""}`}
+                      />
                       <InfoBox label={t.deliveryPlace} value={item.delivery_location || "-"} />
                       <InfoBox label={t.deadline} value={item.desired_date || "-"} />
                       <InfoBox label={t.note} value={item.customer_note || "-"} />
@@ -617,6 +831,7 @@ function RequestDetailsContent() {
             )}
           </div>
 
+          {/* Offer received card */}
           {hasOffer && (
             <div className="rounded-3xl border border-green-200 bg-white p-6 shadow-sm">
               <p className="text-xs font-black uppercase tracking-wider text-green-700">
@@ -626,8 +841,16 @@ function RequestDetailsContent() {
               <h2 className="mt-1 text-2xl font-black">{t.supplierOffer}</h2>
 
               <div className="mt-5 grid gap-4 md:grid-cols-2">
-                <InfoBox label={t.priceOffer} value={requestData.offer_price || "-"} />
+                <InfoBox
+                  label={t.priceOffer}
+                  value={
+                    requestData.offer_price
+                      ? `${requestData.offer_price} ${requestData.offer_currency || "EUR"}`
+                      : "-"
+                  }
+                />
                 <InfoBox label={t.deliveryTime} value={requestData.offer_delivery_time || "-"} />
+                <InfoBox label={t.terms} value={requestData.offer_terms || "-"} />
               </div>
 
               <div className="mt-4 rounded-2xl bg-slate-50 p-4">
@@ -635,12 +858,137 @@ function RequestDetailsContent() {
                 <p className="mt-2 text-sm leading-6 text-slate-700">
                   {requestData.offer_message || "-"}
                 </p>
+                {!isSupplier && !isAdmin && !hasCustomerDecision && (
+  <form
+    onSubmit={async (e) => {
+      e.preventDefault();
+
+      const token = localStorage.getItem("trustbridge_token");
+    const form = e.currentTarget;
+const formData = new FormData(form);
+
+const submitter = (e.nativeEvent as unknown as { submitter?: HTMLButtonElement }).submitter;
+const decision = submitter?.value || "";
+
+      try {
+        const res = await fetch(`${API}/request-customer-decision`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            request_id: requestData.id,
+            decision,
+            message: formData.get("message"),
+            hotel: formData.get("hotel") === "on",
+            transport: formData.get("transport") === "on",
+            customs: formData.get("customs") === "on",
+            insurance: formData.get("insurance") === "on",
+          }),
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+         alert(t.decisionSaved);
+          window.location.reload();
+        } else {
+          alert(data.message || "Eroare.");
+        }
+      } catch {
+        alert("Eroare server.");
+      }
+    }}
+    className="mt-6 rounded-2xl border bg-slate-50 p-5"
+  >
+    <p className="text-xs font-black uppercase tracking-wider text-[#108280]">
+      {t.customerDecision}
+    </p>
+
+    <textarea
+      name="message"
+      rows={3}
+      placeholder={t.decisionMessage}
+      className="mt-4 w-full rounded-xl border p-3 outline-none focus:border-[#108280]"
+    />
+
+    <div className="mt-4 grid gap-3 text-sm font-bold text-slate-700">
+      <label className="flex gap-2">
+        <input name="hotel" type="checkbox" />
+       {t.wantHotel}
+      </label>
+
+      <label className="flex gap-2">
+        <input name="transport" type="checkbox" />
+        {t.wantTransport}
+      </label>
+
+      <label className="flex gap-2">
+        <input name="customs" type="checkbox" />
+       {t.wantCustoms}
+      </label>
+
+      <label className="flex gap-2">
+        <input name="insurance" type="checkbox" />
+        {t.wantInsurance}
+      </label>
+    </div>
+
+    <div className="mt-5 grid gap-3 md:grid-cols-2">
+     <button
+  type="submit"
+  name="decision"
+  value="accepted"
+  className="rounded-xl bg-[#108280] py-4 text-sm font-black uppercase text-white"
+>
+  {t.acceptOffer}
+</button>
+
+<button
+  type="submit"
+  name="decision"
+  value="rejected"
+  className="rounded-xl bg-red-600 py-4 text-sm font-black uppercase text-white"
+>
+  {t.rejectOffer}
+</button>
+    </div>
+  </form>
+)}
+{hasCustomerDecision && (
+  <div className="mt-6 rounded-2xl border bg-white p-5">
+    <p className="text-xs font-black uppercase tracking-wider text-[#108280]">
+      {t.customerDecision}
+    </p>
+
+    <div
+      className={`mt-3 rounded-xl px-4 py-4 text-sm font-black uppercase ${
+        requestData.customer_decision === "accepted"
+          ? "bg-green-100 text-green-700"
+          : "bg-red-100 text-red-700"
+      }`}
+    >
+      {requestData.customer_decision === "accepted"
+        ? t.acceptOffer
+        : t.rejectOffer}
+    </div>
+
+    {requestData.customer_decision_message && (
+      <p className="mt-3 text-sm font-semibold text-slate-600">
+        {requestData.customer_decision_message}
+      </p>
+    )}
+  </div>
+)}
               </div>
             </div>
           )}
         </div>
 
+        {/* Right sidebar */}
         <aside className="h-fit space-y-6 lg:sticky lg:top-6">
+          {/* Overview card */}
           <div className="rounded-3xl border bg-white p-6 shadow-sm">
             <p className="text-xs font-black uppercase tracking-wider text-[#108280]">
               {t.overview}
@@ -649,16 +997,23 @@ function RequestDetailsContent() {
             <h2 className="mt-1 text-xl font-black">{t.requestData}</h2>
 
             <div className="mt-5 space-y-3 text-sm">
-              <DetailRow label={t.status} value={statusLabel(requestData.status || "pending_review")} />
+              <DetailRow
+                label={t.status}
+                value={statusLabel(requestData.status || "pending_review")}
+              />
               <DetailRow label={t.company} value={requestData.company || "-"} />
               <DetailRow label={t.email} value={requestData.email || "-"} />
-              <DetailRow label={t.targetCountry} value={requestData.delivery_country || "-"} />
+              <DetailRow
+                label={t.targetCountry}
+                value={translateCountry(requestData.delivery_country, lang)}
+              />
               <DetailRow label={t.transport} value={requestData.transport_needed || "-"} />
               <DetailRow label={t.confidentiality} value={requestData.confidentiality || "-"} />
               <DetailRow label={t.subRequest} value={isSubRequest ? t.yes : t.no} />
             </div>
           </div>
 
+          {/* Admin panel */}
           {isAdmin && (
             <div className="rounded-3xl border bg-white p-6 shadow-sm">
               <p className="text-xs font-black uppercase tracking-wider text-[#108280]">
@@ -747,7 +1102,9 @@ function RequestDetailsContent() {
                       disabled={sendLoading}
                       onClick={async () => {
                         const token = localStorage.getItem("trustbridge_token");
-                        const input = document.getElementById("manual-supplier-id") as HTMLInputElement | null;
+                        const input = document.getElementById(
+                          "manual-supplier-id"
+                        ) as HTMLInputElement | null;
                         const supplierId = input?.value?.trim();
 
                         if (!supplierId || Number.isNaN(Number(supplierId))) {
@@ -772,7 +1129,10 @@ function RequestDetailsContent() {
                             }),
                           });
 
-                          const data = (await res.json()) as { success?: boolean; message?: string };
+                          const data = (await res.json()) as {
+                            success?: boolean;
+                            message?: string;
+                          };
 
                           if (data.success) {
                             alert(t.sentSupplier);
@@ -807,6 +1167,7 @@ function RequestDetailsContent() {
             </div>
           )}
 
+          {/* Supplier offer form */}
           {supplierCanOffer && (
             <div className="rounded-3xl border bg-white p-6 shadow-sm">
               <p className="text-xs font-black uppercase tracking-wider text-[#108280]">
@@ -833,7 +1194,9 @@ function RequestDetailsContent() {
                       body: JSON.stringify({
                         request_id: requestData.id,
                         price: formData.get("price"),
+                        currency: formData.get("currency"),
                         delivery_time: formData.get("delivery_time"),
+                        terms: formData.get("terms"),
                         message: formData.get("message"),
                       }),
                     });
@@ -854,26 +1217,64 @@ function RequestDetailsContent() {
                 }}
                 className="mt-5 space-y-4"
               >
-                <input
-                  name="price"
-                  required
-                  defaultValue={requestData.offer_price || ""}
-                  placeholder={t.pricePlaceholder}
-                  className="w-full rounded-xl border p-3 outline-none focus:border-[#108280]"
-                />
+                {/* Preț + Monedă */}
+                <div className="flex gap-2">
+                  <input
+                    name="price"
+                    required
+                    defaultValue={requestData.offer_price || ""}
+                    placeholder={t.pricePlaceholder}
+                    className="flex-1 rounded-xl border p-3 outline-none focus:border-[#108280]"
+                  />
+                  <select
+                    name="currency"
+                    defaultValue={requestData.offer_currency || "EUR"}
+                    className="rounded-xl border p-3 font-bold outline-none focus:border-[#108280]"
+                  >
+                    <option value="EUR">EUR</option>
+                    <option value="RON">RON</option>
+                    <option value="HUF">HUF</option>
+                  </select>
+                </div>
 
-                <input
+                {/* Timp livrare */}
+                <select
                   name="delivery_time"
-                  defaultValue={requestData.offer_delivery_time || ""}
-                  placeholder={t.deliveryPlaceholder}
-                  className="w-full rounded-xl border p-3 outline-none focus:border-[#108280]"
-                />
+                 defaultValue={deliveryLabelToValue(requestData.offer_delivery_time)}
+                  className="w-full rounded-xl border p-3 text-slate-700 outline-none focus:border-[#108280]"
+                >
+                  <option value="" disabled>
+                    {t.deliveryChoose}
+                  </option>
+                 {t.deliveryOptions.map((opt) => (
+  <option key={opt.value} value={opt.value}>
+    {opt.label}
+  </option>
+))}
+                </select>
 
+                {/* Condiții */}
+                <select
+                  name="terms"
+                  defaultValue={termsLabelToValue(requestData.offer_terms)}
+                  className="w-full rounded-xl border p-3 text-slate-700 outline-none focus:border-[#108280]"
+                >
+                  <option value="" disabled>
+                    {t.termsChoose}
+                  </option>
+                  {t.termOptions.map((opt) => (
+  <option key={opt.value} value={opt.value}>
+    {opt.label}
+  </option>
+))}
+                </select>
+
+                {/* Mesaj suplimentar */}
                 <textarea
                   name="message"
-                  rows={4}
+                  rows={3}
                   defaultValue={requestData.offer_message || ""}
-                  placeholder={t.messagePlaceholder}
+                  placeholder={t.extraMessage}
                   className="w-full rounded-xl border p-3 outline-none focus:border-[#108280]"
                 />
 
@@ -887,15 +1288,15 @@ function RequestDetailsContent() {
             </div>
           )}
 
+          {/* Supplier - not yet released */}
           {isSupplier && !supplierCanOffer && (
             <div className="rounded-3xl border bg-white p-6 shadow-sm">
               <h2 className="text-xl font-black">{t.notReleased}</h2>
-              <p className="mt-3 text-sm leading-6 text-slate-600">
-                {t.notReleasedText}
-              </p>
+              <p className="mt-3 text-sm leading-6 text-slate-600">{t.notReleasedText}</p>
             </div>
           )}
 
+          {/* Next step */}
           <div className="rounded-3xl border bg-white p-6 shadow-sm">
             <h2 className="text-xl font-black">{t.nextStep}</h2>
             <p className="mt-3 text-sm leading-6 text-slate-600">

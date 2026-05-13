@@ -292,7 +292,8 @@
   "btn_draft": "Salvează ciornă",
   "btn_submit": "Trimite oferta",
   "btn_sending": "Se trimite...",
-  "alert_success": "Succes! Oferta a fost creată."
+  "alert_success": "Succes! Oferta a fost creată.",
+  "label_location_city": "Marfa/serviciul se află în: (menționați doar orașul)"
 },
 
   "search": {

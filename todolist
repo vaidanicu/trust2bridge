@@ -1,49 +1,19 @@
-Uber uns [X]
-Kontakt [x]
-sa mearga pe email email in limba fiecarui furnizor
-Produktfreigabe (Dashboard) [x]
-pretul covertit [x]
-footer[x]
-formularul Ofera [x]
-categoriile de pe pagina de home [x]
-Datenschutz [x]
-Impressum[x]
-ICON [x]
-cookies [x]
-formular de contact []
 
+formular de contact []
 request 3 limbi[x]
 pw: ,+xAYdjCe$*+*7xM
 
-
-- Cerere de achiziție lipseste jos la transport (ro) [x]
-
-- Toate mesajele sa mearga la fiecare furnizor in limba lui
-
-- produsul pus pe pagina sa fie tradus in fiecare limba, HU,DE,RO  [x]
-
-- CATEGORIA SI DESCRIREA TOT SA FIE TRADUS [x]
-
--la inregistrare adminul nu primeste email cu crerea de inregistrare [x]
-
--la primirea mesajului de inregistrare sa apara si link unde se poate login  [X]
-
-
--la nu sa gasit produsul, sa mearga mesajul in limba care doreste adminul 
-        - nu merge statusul doar la Rol: tb_supplier 
-        - nu afiseaza statusul la persoana care a pus intrebarea Rol: tb_supplier
-        - nu afiseaza cererea ( intrebarea) Rol: tb_supplier
-
-- nu apar cereriile de la /offer-create in dashboard admin ( in backend apare) []
-
-- nu apare in tb_supplier cererea depusa( pentru produs)
-
-- pe pagina de home, nu se schimba produsele, sau nu se sterg nu se adauga alte noi ca si pe pagina de marketplace [x]
-
-- Confirmare cerere TrustBridge #138
-        TrustBridge <info@trustbridgeb2b.com>
-            10:01 (0 minutes ago)
-        to me
-        Am primit cererea dvs. ID cerere: 138. Echipa TrustBridge o va analiza. ( trebuie in limba clientului)
-
--Ofertă nouă pentru cererea dvs. #139 in limba clientului cu pretul transformat in forint ron sau euro
+- daca clientul accepta oferta, sa vada si adminul si furnizorul ca a acceptat [x]
+- eroare la Nume Autu00f3lakk / Autu00f3festu00e9k [x]
+- titlu in 3 limbi la request [x]
+- la buyer dupa ce a acceptat sau refuzat oferta, dupa ce a trimis sa nu mai apara butoanele [x]
+- la inregistrare sa apara in toate limbile ofertele [x]
+- descrierea sa apara in dashboard la admin , sa vada ce pachet doreste, sau sa adaug un nou input pentru pachete[x]
+- partea de desing la marketplace , sa fie mai mici cardurile [x]
+- guided-request de pe pagina marketplace sa fie scos [x]
+- butonul de cautare de pe homepage nu functioneaza [x]
+- fa un test si pentru furnizori, sa adauge produse pe pagina
+-Ware/Dienstleistung in: (nur Stadt nennen) in 3 limbi [x]
+- mai verifica complectarea pentru produs, sa vada admin toate detaliile
+- plitica ro si de
+- impresum ro hu de

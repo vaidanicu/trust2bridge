@@ -255,6 +255,7 @@
     { "val": "request", "label": "Preis auf Anfrage" },
     { "val": "market", "label": "Tagespreis" }
   ],
+  "label_location_city: ":"Ware/Dienstleistung in: (nur Stadt nennen)",
   "label_price": "Preis",
   "label_currency": "Währung",
   "label_price_per": "Preis gilt pro",

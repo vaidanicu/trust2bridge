@@ -25,6 +25,7 @@ export default function ContactForm({ lang }: { lang: Lang }) {
   const [form, setForm] = useState({
     name: "",
     email: "",
+    phone: "",
     company: "",
     message: "",
     privacy: false,
@@ -38,6 +39,8 @@ export default function ContactForm({ lang }: { lang: Lang }) {
         "Kontaktieren Sie unser TrustBridge B2B Team bezüglich Anbieter-Paketen, Beschaffungsanfragen oder strategischen B2B-Partnerschaften.",
       name: "Vollständiger Name",
       email: "Geschäftliche E-Mail",
+      phone: "Telefonnummer",
+      phonePlaceholder: "+49 123 456 789",
       company: "Firma",
       message: "Nachricht",
       namePlaceholder: "Max Mustermann",
@@ -58,7 +61,6 @@ export default function ContactForm({ lang }: { lang: Lang }) {
       infoText:
         "Wir verbinden Anbieter, Käufer und Beschaffungspartner in Deutschland, Ungarn und Rumänien über eine sichere RFQ- und Sourcing-Plattform.",
       businessEmail: "Geschäfts E-Mail",
-      phone: "Telefon",
       regions: "Regionen",
       services: "Dienstleistungen",
       privacy: "Datenschutz & GDPR",
@@ -73,6 +75,8 @@ export default function ContactForm({ lang }: { lang: Lang }) {
         "Contactează echipa TrustBridge B2B pentru pachete furnizori, cereri de achiziție sau parteneriate strategice B2B.",
       name: "Nume complet",
       email: "Email business",
+      phone: "Număr de telefon",
+      phonePlaceholder: "+40 700 000 000",
       company: "Companie",
       message: "Mesaj",
       namePlaceholder: "Ion Popescu",
@@ -93,7 +97,6 @@ export default function ContactForm({ lang }: { lang: Lang }) {
       infoText:
         "Conectăm furnizori, cumpărători și parteneri de achiziții din Germania, Ungaria și România printr-o platformă securizată RFQ și sourcing.",
       businessEmail: "Email Business",
-      phone: "Telefon",
       regions: "Regiuni",
       services: "Servicii",
       privacy: "Confidențialitate & GDPR",
@@ -108,6 +111,8 @@ export default function ContactForm({ lang }: { lang: Lang }) {
         "Vegye fel a kapcsolatot a TrustBridge B2B csapatával beszállítói csomagokkal, beszerzési ajánlatkérésekkel vagy stratégiai B2B partnerségekkel kapcsolatban.",
       name: "Teljes név",
       email: "Üzleti email",
+      phone: "Telefonszám",
+      phonePlaceholder: "+36 70 000 0000",
       company: "Cég",
       message: "Üzenet",
       namePlaceholder: "Kiss János",
@@ -128,7 +133,6 @@ export default function ContactForm({ lang }: { lang: Lang }) {
       infoText:
         "Beszállítókat, vásárlókat és beszerzési partnereket kötünk össze Németországban, Magyarországon és Romániában egy biztonságos RFQ és sourcing platformon keresztül.",
       businessEmail: "Üzleti Email",
-      phone: "Telefon",
       regions: "Régiók",
       services: "Szolgáltatások",
       privacy: "Adatvédelem & GDPR",
@@ -142,24 +146,15 @@ export default function ContactForm({ lang }: { lang: Lang }) {
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
-    });
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handlePrivacyChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setForm({
-      ...form,
-      privacy: e.target.checked,
-    });
+  const handlePrivacyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm({ ...form, privacy: e.target.checked });
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
     setSuccess("");
     setError("");
 
@@ -173,32 +168,32 @@ export default function ContactForm({ lang }: { lang: Lang }) {
     try {
       const body = new FormData();
 
+      // Câmpuri obligatorii CF7
+      body.append("_wpcf7", "187");
+      body.append("_wpcf7_version", "5.9");
+      body.append("_wpcf7_locale", "en_US");
+      body.append("_wpcf7_unit_tag", "wpcf7-f187-p1-o1");
+      body.append("_wpcf7_container_post", "0");
+
+      // Câmpurile formularului
       body.append("your-name", form.name);
       body.append("your-email", form.email);
+      body.append("your-phone", form.phone);
       body.append("your-company", form.company);
       body.append("your-message", form.message);
-      body.append("privacy", form.privacy ? "yes" : "no");
+      body.append("privacy", form.privacy ? "1" : "");
+      body.append("lang", lang);
 
       const response = await fetch(
-        "https://trustbridgeb2b.com/backend/wp-json/contact-form-7/v1/contact-forms/6/feedback",
-        {
-          method: "POST",
-          body,
-        }
+        "https://trustbridgeb2b.com/backend/wp-json/contact-form-7/v1/contact-forms/187/feedback",
+        { method: "POST", body }
       );
 
       const data = await response.json();
 
       if (data.status === "mail_sent") {
         setSuccess(t.success);
-
-        setForm({
-          name: "",
-          email: "",
-          company: "",
-          message: "",
-          privacy: false,
-        });
+        setForm({ name: "", email: "", phone: "", company: "", message: "", privacy: false });
       } else {
         setError(data.message || t.error);
       }
@@ -220,28 +215,16 @@ export default function ContactForm({ lang }: { lang: Lang }) {
             <span className="inline-flex items-center rounded-full bg-[#108280]/10 text-[#108280] px-4 py-1.5 text-sm font-semibold mb-5">
               {t.badge}
             </span>
-
-            <h2 className="text-3xl font-bold text-gray-900">
-              {t.title}
-            </h2>
-
-            <p className="mt-4 text-gray-600 leading-relaxed">
-              {t.subtitle}
-            </p>
+            <h2 className="text-3xl font-bold text-gray-900">{t.title}</h2>
+            <p className="mt-4 text-gray-600 leading-relaxed">{t.subtitle}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Nume */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">
-                {t.name}
-              </label>
-
+              <label className="block text-sm font-semibold text-gray-700 mb-3">{t.name}</label>
               <div className="relative">
-                <User
-                  size={18}
-                  className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400"
-                />
-
+                <User size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
                   name="name"
@@ -254,17 +237,11 @@ export default function ContactForm({ lang }: { lang: Lang }) {
               </div>
             </div>
 
+            {/* Email */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">
-                {t.email}
-              </label>
-
+              <label className="block text-sm font-semibold text-gray-700 mb-3">{t.email}</label>
               <div className="relative">
-                <Mail
-                  size={18}
-                  className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400"
-                />
-
+                <Mail size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
                   type="email"
                   name="email"
@@ -277,17 +254,28 @@ export default function ContactForm({ lang }: { lang: Lang }) {
               </div>
             </div>
 
+            {/* Telefon - OBLIGATORIU */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">
-                {t.company}
-              </label>
-
+              <label className="block text-sm font-semibold text-gray-700 mb-3">{t.phone}</label>
               <div className="relative">
-                <Building2
-                  size={18}
-                  className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400"
+                <Phone size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="tel"
+                  name="phone"
+                  value={form.phone}
+                  onChange={handleChange}
+                  required
+                  placeholder={t.phonePlaceholder}
+                  className="w-full h-14 rounded-2xl border border-gray-200 bg-gray-50/50 pl-14 pr-5 text-gray-900 outline-none transition-all focus:border-[#108280] focus:ring-4 focus:ring-[#108280]/10"
                 />
+              </div>
+            </div>
 
+            {/* Companie */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-3">{t.company}</label>
+              <div className="relative">
+                <Building2 size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
                   name="company"
@@ -299,17 +287,11 @@ export default function ContactForm({ lang }: { lang: Lang }) {
               </div>
             </div>
 
+            {/* Mesaj */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">
-                {t.message}
-              </label>
-
+              <label className="block text-sm font-semibold text-gray-700 mb-3">{t.message}</label>
               <div className="relative">
-                <MessageSquare
-                  size={18}
-                  className="absolute left-5 top-6 text-gray-400"
-                />
-
+                <MessageSquare size={18} className="absolute left-5 top-6 text-gray-400" />
                 <textarea
                   rows={6}
                   name="message"
@@ -322,6 +304,7 @@ export default function ContactForm({ lang }: { lang: Lang }) {
               </div>
             </div>
 
+            {/* Privacy */}
             <label className="flex items-start gap-3 rounded-2xl border border-gray-200 bg-gray-50/70 p-4 cursor-pointer hover:border-[#108280]/40 transition-all">
               <input
                 type="checkbox"
@@ -330,10 +313,7 @@ export default function ContactForm({ lang }: { lang: Lang }) {
                 required
                 className="mt-1 h-5 w-5 rounded border-gray-300 accent-[#108280]"
               />
-
-              <span className="text-sm text-gray-600 leading-relaxed">
-                {t.privacyAgreement}
-              </span>
+              <span className="text-sm text-gray-600 leading-relaxed">{t.privacyAgreement}</span>
             </label>
 
             {success && (
@@ -361,10 +341,7 @@ export default function ContactForm({ lang }: { lang: Lang }) {
                 ) : (
                   <>
                     {t.button}
-                    <Send
-                      size={18}
-                      className="transition-transform group-hover:translate-x-1"
-                    />
+                    <Send size={18} className="transition-transform group-hover:translate-x-1" />
                   </>
                 )}
               </span>
@@ -373,6 +350,7 @@ export default function ContactForm({ lang }: { lang: Lang }) {
         </div>
       </div>
 
+      {/* Panoul informativ */}
       <div className="relative overflow-hidden rounded-[32px] bg-[#108280] text-white shadow-[0_20px_60px_rgba(16,130,128,0.35)]">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.18),transparent_30%)]" />
 
@@ -381,14 +359,8 @@ export default function ContactForm({ lang }: { lang: Lang }) {
             <span className="inline-flex items-center rounded-full bg-white/10 backdrop-blur-sm px-4 py-1.5 text-sm font-medium mb-6">
               {t.infoBadge}
             </span>
-
-            <h3 className="text-4xl font-bold leading-tight mb-6">
-              {t.infoTitle}
-            </h3>
-
-            <p className="text-white/85 text-lg leading-relaxed">
-              {t.infoText}
-            </p>
+            <h3 className="text-4xl font-bold leading-tight mb-6">{t.infoTitle}</h3>
+            <p className="text-white/85 text-lg leading-relaxed">{t.infoText}</p>
           </div>
 
           <div className="mt-14 space-y-5">
@@ -396,31 +368,9 @@ export default function ContactForm({ lang }: { lang: Lang }) {
               <div className="flex items-start gap-4">
                 <Mail size={22} className="text-white/80 mt-1" />
                 <div>
-                  <p className="text-sm text-white/70 mb-1">
-                    {t.businessEmail}
-                  </p>
-                  <a
-                    href="mailto:office@trustbridgeb2b.com"
-                    className="font-semibold text-lg hover:underline"
-                  >
-                    office@trustbridgeb2b.com
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-white/10 bg-white/10 backdrop-blur-sm p-5">
-              <div className="flex items-start gap-4">
-                <Phone size={22} className="text-white/80 mt-1" />
-                <div>
-                  <p className="text-sm text-white/70 mb-1">
-                    {t.phone}
-                  </p>
-                  <a
-                    href="tel:+49123456789"
-                    className="font-semibold text-lg hover:underline"
-                  >
-                    +49 123 456 789
+                  <p className="text-sm text-white/70 mb-1">{t.businessEmail}</p>
+                  <a href="mailto:info@trustbridgeb2b.com" className="font-semibold text-lg hover:underline">
+                    info@trustbridgeb2b.com
                   </a>
                 </div>
               </div>
@@ -430,29 +380,18 @@ export default function ContactForm({ lang }: { lang: Lang }) {
               <div className="flex items-start gap-4">
                 <Globe2 size={22} className="text-white/80 mt-1" />
                 <div>
-                  <p className="text-sm text-white/70 mb-1">
-                    {t.regions}
-                  </p>
-                  <p className="font-semibold text-lg">
-                    Deutschland • Magyarország • România
-                  </p>
+                  <p className="text-sm text-white/70 mb-1">{t.regions}</p>
+                  <p className="font-semibold text-lg">Deutschland • Magyarország • România</p>
                 </div>
               </div>
             </div>
 
             <div className="rounded-2xl border border-white/10 bg-white/10 backdrop-blur-sm p-5">
               <div className="flex items-start gap-4">
-                <BriefcaseBusiness
-                  size={22}
-                  className="text-white/80 mt-1"
-                />
+                <BriefcaseBusiness size={22} className="text-white/80 mt-1" />
                 <div>
-                  <p className="text-sm text-white/70 mb-1">
-                    {t.services}
-                  </p>
-                  <p className="font-semibold text-lg">
-                    {t.servicesText}
-                  </p>
+                  <p className="text-sm text-white/70 mb-1">{t.services}</p>
+                  <p className="font-semibold text-lg">{t.servicesText}</p>
                 </div>
               </div>
             </div>
@@ -461,12 +400,8 @@ export default function ContactForm({ lang }: { lang: Lang }) {
               <div className="flex items-start gap-4">
                 <ShieldCheck size={22} className="text-white/80 mt-1" />
                 <div>
-                  <p className="text-sm text-white/70 mb-1">
-                    {t.privacy}
-                  </p>
-                  <p className="font-semibold text-lg">
-                    {t.privacyText}
-                  </p>
+                  <p className="text-sm text-white/70 mb-1">{t.privacy}</p>
+                  <p className="font-semibold text-lg">{t.privacyText}</p>
                 </div>
               </div>
             </div>

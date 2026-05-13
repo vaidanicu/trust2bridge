@@ -15,22 +15,22 @@ export default async function ImpressumPage({
   const content =
     lang === "ro"
       ? {
-          title: "Informații legale (Impressum)",
+          title: "Impressum",
           operator:
-            "Operatorul și responsabilul pentru conținutul site-ului:",
-          structure: "Structura platformei",
+            "Persoana responsabilă pentru conținutul și operatorul website-ului:",
+          structure: "Informații privind structura platformei",
           contentTitle: "Răspunderea pentru conținut",
           linksTitle: "Răspunderea pentru linkuri",
           copyright: "Drepturi de autor",
           disputes: "Soluționarea litigiilor",
           structureText:
-            "Acest portal B2B are scopul de a prezenta și conecta parteneri de afaceri din Germania, Ungaria și România. Companiile partenere prezentate pe platformă sunt entități juridice independente și își desfășoară activitatea pe propria răspundere. Operatorul platformei nu își asumă răspunderea juridică pentru activitatea acestora, cu excepția cazurilor în care se prevede în mod expres altfel.",
+            "Această platformă B2B are scopul de a prezenta și conecta parteneri de afaceri din Germania, Ungaria și România.\nCompaniile partenere prezentate pe platformă sunt entități juridice independente și acționează pe piață pe propria răspundere.\nOperatorul acestui website nu oferă reprezentare juridică și nu își asumă răspunderea pentru activitatea companiilor partenere, cu excepția cazurilor convenite în mod expres.",
           contentText:
             "Conținutul site-ului a fost creat cu cea mai mare atenție. Cu toate acestea, nu putem garanta exactitatea, completitudinea și actualitatea informațiilor.",
           linksText:
-            "Site-ul conține linkuri către site-uri externe ale unor terți, asupra cărora nu avem control. Prin urmare, nu ne asumăm responsabilitatea pentru conținutul acestora.",
+            "Website-ul nostru poate conține linkuri către website-uri externe ale unor terțe părți, asupra cărora nu avem niciun control. Din acest motiv, nu ne asumăm răspunderea pentru conținutul acestor website-uri externe.",
           copyrightText:
-            "Conținutul și lucrările create de operatorul site-ului sunt protejate conform legislației aplicabile privind drepturile de autor.",
+            "Conținutul și lucrările create de operatorul site-ului sunt protejate de legislația națională privind drepturile de autor. Conținuturile aparținând terților sunt marcate corespunzător.",
           disputesText:
             "Comisia Europeană oferă o platformă pentru soluționarea online a litigiilor:",
           disputesEnd:
@@ -38,22 +38,21 @@ export default async function ImpressumPage({
         }
       : lang === "hu"
       ? {
-          title: "Jogi nyilatkozat / Impresszum",
-          operator:
-            "A weboldal üzemeltetője és a tartalomért felelős személy:",
-          structure: "A platform működése",
-          contentTitle: "Felelősség a tartalomért",
-          linksTitle: "Felelősség a linkekért",
-          copyright: "Szerzői jog",
-          disputes: "Jogvita rendezése",
+          title: "Impresszum",
+          operator: "A weboldal tartalmáért felelős személy és üzemeltető:",
+          structure: "Tájékoztatás a platform működéséről",
           structureText:
-            "Ez a B2B portál német, magyar és román üzleti partnerek bemutatására és összekapcsolására szolgál. A platformon megjelenő partnercégek jogilag önálló gazdasági szereplők, és saját felelősségükre működnek. Az oldal üzemeltetője nem vállal felelősséget ezek tevékenységéért, kivéve, ha erről kifejezett megállapodás rendelkezik.",
+            "Ez a B2B platform üzleti partnerek bemutatását és összekapcsolását szolgálja Németországban, Magyarországon és Romániában.\nA platformon megjelenő partnercégek jogilag önálló vállalkozások, amelyek saját felelősségükre működnek és önállóan lépnek fel a piacon.\nA weboldal üzemeltetője nem vállal jogi képviseletet vagy felelősséget a partnercégek tevékenységéért, kivéve, ha erről külön megállapodás születik.",
+          contentTitle: "Felelősség a tartalomért",
           contentText:
-            "Az oldalon található tartalmak a lehető legnagyobb gondossággal készültek. Ennek ellenére nem vállalunk garanciát azok pontosságára, teljességére és aktualitására.",
+            "Oldalaink tartalmát a lehető legnagyobb gondossággal készítettük el. Ennek ellenére a tartalom helyességéért, teljességéért és aktualitásáért felelősséget nem vállalunk.",
+          linksTitle: "Felelősség a hivatkozásokért",
           linksText:
-            "Weboldalunk külső harmadik felek weboldalaira mutató linkeket tartalmaz, amelyek tartalmára nincs befolyásunk. Ezekért nem vállalunk felelősséget.",
+            "Weboldalunk külső, harmadik fél által üzemeltetett weboldalakra mutató hivatkozásokat tartalmazhat, amelyek tartalmára nincs befolyásunk. Ezért ezen külső tartalmakért felelősséget nem vállalunk.",
+          copyright: "Szerzői jog",
           copyrightText:
-            "Az oldal tartalma és az üzemeltető által létrehozott anyagok szerzői jogi védelem alatt állnak.",
+            "Az oldalak üzemeltetője által létrehozott tartalmak és művek az adott ország szerzői jogi szabályozása alá tartoznak. Harmadik felektől származó tartalmak külön jelölésre kerülnek.",
+          disputes: "Jogvita rendezése",
           disputesText:
             "Az Európai Bizottság online vitarendezési platformot biztosít:",
           disputesEnd:
@@ -189,7 +188,7 @@ function Section({
         {title}
       </h2>
 
-      <p className="mt-4 leading-8 text-slate-700">
+      <p className="mt-4 leading-8 text-slate-700 whitespace-pre-line">
         {text}
       </p>
     </div>

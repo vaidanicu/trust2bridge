@@ -267,6 +267,8 @@
     { "val": "negotiable", "label": "Alkuképes" },
     { "val": "market", "label": "Piaci ár (napi)" }
   ],
+  "label_location_city": "Áru/szolgáltatás helye: (csak a várost adja meg)",
+  
   "label_price": "Ár",
   "label_currency": "Pénznem",
   "label_price_per": "Egységár per",

@@ -187,7 +187,10 @@ export default function OfferCreatePage({ dict, lang }: { dict: any; lang: strin
                 <Input name="article_number" label={dict.offer.label_art_no} />
                 <Input name="brand"          label={dict.offer.label_brand} />
                 <Input name="origin"         label={dict.offer.label_origin} />
-                <Input name="location_city"  label="Ware/Dienstleistung in: (nur Stadt nennen)" />
+                <Input
+  name="location_city"
+  label={dict.offer.label_location_city}
+/>
                 <Field label={dict.offer.label_condition}>
                   <select name="condition" className="input-brutal">
                     {dict.offer.conditions.map((c: string) => <option key={c}>{c}</option>)}
