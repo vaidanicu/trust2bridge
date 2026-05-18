@@ -8,8 +8,6 @@ import { formatConvertedPrice } from "@/lib/currency";
 
 const API = "https://trustbridgeb2b.com/backend/wp-json/trustbridge/v1";
 
-// ─── INTERFACES ──────────────────────────────────────────────────────────────
-
 interface TranslationDict { [key: string]: string; }
 interface Translations { [lang: string]: TranslationDict; }
 interface User { name: string; company?: string; roles: string[]; }
@@ -32,8 +30,6 @@ interface RegistrationItem {
   status?: string; business_type?: string; message?: string;
   lang?: string; package?: string;
 }
-
-// ─── TRANSLATIONS ─────────────────────────────────────────────────────────────
 
 const translations: Translations = {
   de: {
@@ -144,30 +140,26 @@ const translations: Translations = {
   }
 };
 
-// ─── STATUS BADGE ─────────────────────────────────────────────────────────────
-
 function StatusBadge({ status, dict }: { status: string; dict: TranslationDict }) {
   const map: Record<string, [string, string]> = {
-    nou:               [dict.s_new,          "bg-blue-500/10 text-blue-400 border-blue-500/20"],
-    pending:           [dict.s_waiting,      "bg-yellow-500/10 text-yellow-400 border-yellow-500/20"],
-    pending_review:    [dict.s_waiting,      "bg-yellow-500/10 text-yellow-400 border-yellow-500/20"],
-    processing:        [dict.s_processing,   "bg-indigo-500/10 text-indigo-400 border-indigo-500/20"],
-    sent_to_partner:   [dict.s_sent_partner, "bg-purple-500/10 text-purple-400 border-purple-500/20"],
-    sent_to_supplier:  [dict.s_sent_supp,    "bg-cyan-500/10 text-cyan-400 border-cyan-500/20"],
-    offer_received:    [dict.s_offer_rec,    "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"],
-    completed:         [dict.s_completed,    "bg-green-500/10 text-green-400 border-green-500/20"],
-    rejected:          [dict.s_rejected,     "bg-red-500/10 text-red-400 border-red-500/20"],
-    approved:          [dict.s_active,       "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"],
+    nou:               [dict.s_new,          "bg-blue-50 text-blue-600 border-blue-200"],
+    pending:           [dict.s_waiting,      "bg-amber-50 text-amber-600 border-amber-200"],
+    pending_review:    [dict.s_waiting,      "bg-amber-50 text-amber-600 border-amber-200"],
+    processing:        [dict.s_processing,   "bg-violet-50 text-violet-600 border-violet-200"],
+    sent_to_partner:   [dict.s_sent_partner, "bg-purple-50 text-purple-600 border-purple-200"],
+    sent_to_supplier:  [dict.s_sent_supp,    "bg-cyan-50 text-cyan-700 border-cyan-200"],
+    offer_received:    [dict.s_offer_rec,    "bg-teal-50 text-teal-700 border-teal-200"],
+    completed:         [dict.s_completed,    "bg-emerald-50 text-emerald-700 border-emerald-200"],
+    rejected:          [dict.s_rejected,     "bg-red-50 text-red-600 border-red-200"],
+    approved:          [dict.s_active,       "bg-emerald-50 text-emerald-700 border-emerald-200"],
   };
-  const [label, cls] = map[status] || [status, "bg-slate-500/10 text-slate-400 border-slate-500/20"];
+  const [label, cls] = map[status] || [status, "bg-slate-100 text-slate-500 border-slate-200"];
   return (
     <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${cls}`}>
       {label}
     </span>
   );
 }
-
-// ─── PRODUCT MODAL ────────────────────────────────────────────────────────────
 
 function ProductModal({ item, onClose, onApprove, onReject, isAdmin, dict, lang }: {
   item: ProductItem; onClose: () => void; onApprove?: (id: number) => void;
@@ -193,7 +185,6 @@ function ProductModal({ item, onClose, onApprove, onReject, isAdmin, dict, lang 
             </div>
             <button onClick={onClose} className="modal-close">✕</button>
           </div>
-
           <div className="modal-body">
             <div className="modal-left">
               <p className="field-label">{dict.m_gallery}</p>
@@ -211,7 +202,6 @@ function ProductModal({ item, onClose, onApprove, onReject, isAdmin, dict, lang 
               <p className="field-label mt-6">{dict.m_desc}</p>
               <div className="prose-box" dangerouslySetInnerHTML={{ __html: item.description }} />
             </div>
-
             <div className="modal-right">
               <div className="data-grid">
                 <DataCell label={dict.t_status} value={isLive ? `✅ ${dict.s_live}` : `⏳ ${dict.s_waiting}`} accent={!isLive} />
@@ -221,7 +211,6 @@ function ProductModal({ item, onClose, onApprove, onReject, isAdmin, dict, lang 
                 <DataCell label={dict.m_cat} value={item.category || "-"} />
                 <DataCell label={dict.m_subcat} value={item.subcategory || "-"} />
               </div>
-
               <div className="supplier-box">
                 <p className="field-label teal">{dict.m_supp_info}</p>
                 <p className="supplier-name">{item.supplier_name || "---"}</p>
@@ -231,7 +220,6 @@ function ProductModal({ item, onClose, onApprove, onReject, isAdmin, dict, lang 
                   <code>{item.internal_id || "N/A"}</code>
                 </div>
               </div>
-
               {isAdmin && (
                 <div className="modal-actions">
                   {!isLive && (
@@ -260,8 +248,6 @@ function DataCell({ label, value, accent = false }: { label: string; value: stri
     </div>
   );
 }
-
-// ─── MAIN DASHBOARD ──────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
   const params = useParams();
@@ -353,7 +339,7 @@ export default function DashboardPage() {
     active: lang === "ro" ? "Vânzare activă" : lang === "hu" ? "Aktív értékesítés" : "Aktiver Vertrieb",
   };
   const packageColor: Record<string, string> = {
-    basic: "pkg-emerald", verified: "pkg-yellow", active: "pkg-blue",
+    basic: "pkg-emerald", verified: "pkg-amber", active: "pkg-blue",
   };
 
   return (
@@ -369,50 +355,68 @@ export default function DashboardPage() {
 
       <main className="db-page">
 
-        {/* ── HERO ── */}
+        {/* HERO */}
         <header className="db-hero">
-          <div className="db-hero-grid" />
-          <div className="db-hero-glow" />
           <div className="db-hero-inner">
-            <span className="db-hero-chip">TrustBridge Dashboard</span>
-            <h1 className="db-hero-title">{dict.welcome}, <span className="db-hero-name">{user?.name}</span></h1>
-            <p className="db-hero-meta">
-              <span>{dict.company}: <strong>{user?.company || "—"}</strong></span>
-              <span className="db-dot" />
-              <span>{dict.role}: <strong>{user?.roles?.[0]}</strong></span>
-            </p>
+            <div className="db-hero-left">
+              <span className="db-hero-chip">TrustBridge Dashboard</span>
+              <h1 className="db-hero-title">
+                {dict.welcome}, <span className="db-hero-name">{user?.name}</span>
+              </h1>
+              <p className="db-hero-meta">
+                <span>{dict.company}: <strong>{user?.company || "—"}</strong></span>
+                <span className="db-dot" />
+                <span>{dict.role}: <strong>{user?.roles?.[0]}</strong></span>
+              </p>
+            </div>
+            <div className="db-hero-stats">
+              <div className="hero-stat">
+                <p className="hero-stat-num">{visibleRequests.length}</p>
+                <p className="hero-stat-label">{dict.basket}</p>
+              </div>
+              <div className="hero-stat">
+                <p className="hero-stat-num">{myItems.length}</p>
+                <p className="hero-stat-label">{dict.my_listings}</p>
+              </div>
+              {isAdmin && (
+                <div className="hero-stat">
+                  <p className="hero-stat-num">{registrations.length}</p>
+                  <p className="hero-stat-label">{dict.new_regs_title}</p>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
         <div className="db-content">
 
-          {/* ── NAV CARDS ── */}
+          {/* NAV CARDS */}
           <div className="nav-grid">
-            <NavCard title={dict.marketplace} desc={dict.marketplace_desc} href={`/${lang}/marketplace`} icon={
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            <NavCard title={dict.marketplace} desc={dict.marketplace_desc} href={`/${lang}/marketplace`} color="teal" icon={
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
             } />
             {isSupplier ? (
               <>
-                <NavCard title={dict.inbox} desc={dict.inbox_desc} href={`/${lang}/dashboard`} icon={
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+                <NavCard title={dict.inbox} desc={dict.inbox_desc} href={`/${lang}/dashboard`} color="blue" icon={
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
                 } />
-                <NavCard title={dict.offers} desc={dict.offers_desc} href={`/${lang}/dashboard`} icon={
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                <NavCard title={dict.offers} desc={dict.offers_desc} href={`/${lang}/dashboard`} color="violet" icon={
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
                 } />
               </>
             ) : (
               <>
-                <NavCard title={dict.basket} desc={dict.basket_desc} href={`/${lang}/request-basket`} icon={
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                <NavCard title={dict.basket} desc={dict.basket_desc} href={`/${lang}/request-basket`} color="blue" icon={
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
                 } />
-                <NavCard title={dict.new_req} desc={dict.new_req_desc} href={`/${lang}/request-basket`} icon={
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <NavCard title={dict.new_req} desc={dict.new_req_desc} href={`/${lang}/request-basket`} color="orange" icon={
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 } />
               </>
             )}
           </div>
 
-          {/* ── ADMIN: PRODUCT APPROVAL ── */}
+          {/* ADMIN: PRODUCT APPROVAL */}
           {isAdmin && (
             <Section title={dict.prod_approval} badge={dict.control} badgeColor="orange">
               {myItems.length === 0 ? (
@@ -438,13 +442,13 @@ export default function DashboardPage() {
                             <p className="td-sub">{item.supplier_email}</p>
                           </td>
                           <td className="db-td">
-                            <span className={`status-pill ${item.wp_status === "publish" ? "pill-green" : "pill-yellow"}`}>
+                            <span className={`status-pill ${item.wp_status === "publish" ? "pill-green" : "pill-amber"}`}>
                               {item.wp_status === "publish" ? dict.s_live : dict.s_waiting}
                             </span>
                           </td>
                           <td className="db-td text-right">
                             <div className="action-row">
-                              <button onClick={() => setSelectedItem(item)} className="btn-teal-sm">{dict.btn_details}</button>
+                              <button onClick={() => setSelectedItem(item)} className="btn-outline-sm">{dict.btn_details}</button>
                               {item.wp_status !== "publish" && (
                                 <button onClick={() => handleItemAction(item.id, "approve")} className="btn-green-sm">{dict.btn_approve}</button>
                               )}
@@ -460,7 +464,7 @@ export default function DashboardPage() {
             </Section>
           )}
 
-          {/* ── SUPPLIER: MY LISTINGS ── */}
+          {/* SUPPLIER: MY LISTINGS */}
           {isSupplier && !isAdmin && (
             <Section title={dict.my_listings}>
               {myItems.length === 0 ? <Empty title={dict.no_listings} /> : (
@@ -471,7 +475,7 @@ export default function DashboardPage() {
                         <p className="td-main">{item.title}</p>
                         <p className="td-sub">Ref: {item.internal_id || item.id}</p>
                       </div>
-                      <span className={`status-pill ${item.wp_status === "publish" ? "pill-green" : "pill-yellow"}`}>
+                      <span className={`status-pill ${item.wp_status === "publish" ? "pill-green" : "pill-amber"}`}>
                         {item.wp_status === "publish" ? dict.s_active : dict.s_in_review}
                       </span>
                     </div>
@@ -481,7 +485,7 @@ export default function DashboardPage() {
             </Section>
           )}
 
-          {/* ── REQUESTS ── */}
+          {/* REQUESTS */}
           <Section title={isAdmin ? dict.main_reqs_title : isSupplier ? dict.inbox : dict.basket}
             action={!isSupplier && !isAdmin ? { label: dict.new_req, href: `/${lang}/request-basket` } : undefined}>
             {visibleRequests.length === 0 ? <Empty title={dict.no_reqs} desc={dict.no_reqs_desc} /> : (
@@ -499,7 +503,7 @@ export default function DashboardPage() {
                         <td className="db-td td-muted">{req.delivery_country || "—"}</td>
                         <td className="db-td"><StatusBadge status={req.status} dict={dict} /></td>
                         <td className="db-td">
-                          <Link href={`/${lang}/dashboard/requests?id=${req.id}`} className="btn-ghost-sm">{dict.btn_open}</Link>
+                          <Link href={`/${lang}/dashboard/requests?id=${req.id}`} className="btn-outline-sm">{dict.btn_open}</Link>
                         </td>
                       </tr>
                     ))}
@@ -509,7 +513,7 @@ export default function DashboardPage() {
             )}
           </Section>
 
-          {/* ── SUB-REQUESTS ── */}
+          {/* SUB-REQUESTS */}
           {(isAdmin || isSupplier) && subRequests.length > 0 && (
             <Section title={dict.sub_reqs_title} accentColor="orange">
               <div className="db-table-wrap">
@@ -526,7 +530,7 @@ export default function DashboardPage() {
                         <td className="db-td td-main">{req.company || "—"}</td>
                         <td className="db-td"><StatusBadge status={req.status} dict={dict} /></td>
                         <td className="db-td">
-                          <Link href={`/${lang}/dashboard/requests?id=${req.id}`} className="btn-ghost-sm">{dict.btn_open}</Link>
+                          <Link href={`/${lang}/dashboard/requests?id=${req.id}`} className="btn-outline-sm">{dict.btn_open}</Link>
                         </td>
                       </tr>
                     ))}
@@ -536,7 +540,7 @@ export default function DashboardPage() {
             </Section>
           )}
 
-          {/* ── REGISTRATIONS ── */}
+          {/* REGISTRATIONS */}
           {isAdmin && (
             <Section title={dict.new_regs_title}>
               {registrations.length === 0 ? <Empty title={dict.no_regs} desc={dict.no_regs_desc} /> : (
@@ -546,8 +550,6 @@ export default function DashboardPage() {
                     const pkgKey = reg.package || "";
                     return (
                       <div key={reg.id} className={`reg-card ${isOpen ? "reg-card-open" : ""}`}>
-
-                        {/* ── REG HEADER ── */}
                         <div className="reg-head" onClick={() => setExpandedReg(isOpen ? null : reg.id)}>
                           <div className="reg-head-left">
                             <span className="td-mono">#{reg.id}</span>
@@ -567,11 +569,8 @@ export default function DashboardPage() {
                             <svg className={`reg-chevron ${isOpen ? "reg-chevron-open" : ""}`} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
                           </div>
                         </div>
-
-                        {/* ── REG EXPANDED ── */}
                         {isOpen && (
                           <div className="reg-body">
-                            {/* Data fields grid */}
                             <div className="reg-fields">
                               <RegField label={dict.t_contact} value={reg.contact_name} />
                               <RegField label={dict.t_email} value={reg.email} isEmail />
@@ -580,23 +579,18 @@ export default function DashboardPage() {
                               <RegField label={dict.t_vat} value={reg.vat || "—"} isMono />
                               <RegField label={dict.t_type} value={reg.business_type || "—"} />
                               <RegField label={dict.t_lang} value={reg.lang?.toUpperCase() || "—"} />
-                              <RegField
-                                label={dict.t_package}
+                              <RegField label={dict.t_package}
                                 value={pkgKey ? (packageLabel[pkgKey] || pkgKey) : "—"}
                                 highlight={!!pkgKey}
-                                highlightColor={pkgKey === "basic" ? "emerald" : pkgKey === "verified" ? "yellow" : pkgKey === "active" ? "blue" : undefined}
+                                highlightColor={pkgKey === "basic" ? "emerald" : pkgKey === "verified" ? "amber" : pkgKey === "active" ? "blue" : undefined}
                               />
                             </div>
-
-                            {/* Message */}
                             {reg.message && (
                               <div className="reg-message">
                                 <p className="field-label-sm">{dict.t_message}</p>
                                 <p className="reg-message-text">{reg.message}</p>
                               </div>
                             )}
-
-                            {/* Actions */}
                             <div className="reg-actions">
                               <select id={`role-${reg.id}`}
                                 defaultValue={reg.business_type === "supplier" ? "tb_supplier" : "tb_buyer"}
@@ -605,21 +599,15 @@ export default function DashboardPage() {
                                 <option value="tb_supplier">Supplier</option>
                                 <option value="tb_partner">Partner</option>
                               </select>
-                              <button
-                                disabled={reg.status === "approved"}
+                              <button disabled={reg.status === "approved"}
                                 onClick={() => {
                                   const s = document.getElementById(`role-${reg.id}`) as HTMLSelectElement;
                                   handleRegistrationAction(reg.id, "approve", s.value);
                                 }}
-                                className="btn-approve-reg">
-                                ✓ {dict.btn_approve}
-                              </button>
-                              <button
-                                disabled={reg.status === "approved"}
+                                className="btn-approve-reg">✓ {dict.btn_approve}</button>
+                              <button disabled={reg.status === "approved"}
                                 onClick={() => handleRegistrationAction(reg.id, "reject")}
-                                className="btn-reject-reg">
-                                ✕ {dict.btn_reject}
-                              </button>
+                                className="btn-reject-reg">✕ {dict.btn_reject}</button>
                             </div>
                           </div>
                         )}
@@ -631,7 +619,7 @@ export default function DashboardPage() {
             </Section>
           )}
 
-          {/* ── LOGOUT ── */}
+          {/* LOGOUT */}
           <button onClick={() => { localStorage.clear(); window.location.href = `/${lang}/login`; }} className="btn-logout">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
             {dict.logout}
@@ -643,8 +631,6 @@ export default function DashboardPage() {
   );
 }
 
-// ─── HELPER COMPONENTS ────────────────────────────────────────────────────────
-
 function Section({ title, badge, badgeColor, accentColor, action, children }: {
   title: string; badge?: string; badgeColor?: string; accentColor?: string;
   action?: { label: string; href: string }; children: React.ReactNode;
@@ -652,7 +638,7 @@ function Section({ title, badge, badgeColor, accentColor, action, children }: {
   return (
     <div className="db-section">
       <div className="section-header">
-        <div>
+        <div className="flex items-center gap-3">
           <div className={`section-line ${accentColor === "orange" ? "line-orange" : "line-teal"}`} />
           <h2 className="section-title">
             {title}
@@ -666,9 +652,15 @@ function Section({ title, badge, badgeColor, accentColor, action, children }: {
   );
 }
 
-function NavCard({ title, desc, href, icon }: { title: string; desc: string; href: string; icon: React.ReactNode }) {
+function NavCard({ title, desc, href, icon, color }: { title: string; desc: string; href: string; icon: React.ReactNode; color: string }) {
+  const colorMap: Record<string, string> = {
+    teal:   "nav-card-teal",
+    blue:   "nav-card-blue",
+    violet: "nav-card-violet",
+    orange: "nav-card-orange",
+  };
   return (
-    <Link href={href} className="nav-card">
+    <Link href={href} className={`nav-card ${colorMap[color] || "nav-card-teal"}`}>
       <div className="nav-icon">{icon}</div>
       <h3 className="nav-title">{title}</h3>
       <p className="nav-desc">{desc}</p>
@@ -684,7 +676,7 @@ function Empty({ title, desc }: { title: string; desc?: string }) {
   return (
     <div className="db-empty">
       <div className="empty-icon">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
       </div>
       <p className="empty-title">{title}</p>
       {desc && <p className="empty-desc">{desc}</p>}
@@ -697,245 +689,342 @@ function RegField({ label, value, isEmail, isMono, highlight, highlightColor }: 
   highlight?: boolean; highlightColor?: string;
 }) {
   const colorMap: Record<string, string> = {
-    emerald: "reg-field-emerald", yellow: "reg-field-yellow", blue: "reg-field-blue",
+    emerald: "reg-field-emerald", amber: "reg-field-amber", blue: "reg-field-blue",
   };
-  const cls = highlight && highlightColor ? colorMap[highlightColor] || "reg-field-highlight" : "";
+  const cls = highlight && highlightColor ? colorMap[highlightColor] || "" : "";
   return (
     <div className={`reg-field ${cls}`}>
       <span className="field-label-sm">{label}</span>
-      <span className={`reg-field-val ${isMono ? "font-mono" : ""} ${isEmail ? "reg-email" : ""}`}>{value}</span>
+      <span className={`reg-field-val ${isMono ? "font-mono text-xs" : ""} ${isEmail ? "reg-email" : ""}`}>{value}</span>
     </div>
   );
 }
 
-// ─── STYLES ──────────────────────────────────────────────────────────────────
+// ─── STYLES ───────────────────────────────────────────────────────────────────
 
 const globalStyles = `
-  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&family=DM+Mono:wght@400;500&display=swap');
-
   .db-page {
-    font-family: 'DM Sans', sans-serif;
-    background: #080d0d;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #f1f5f9;
     min-height: 100vh;
-    color: #cbd5e1;
+    color: #1e293b;
     padding-bottom: 80px;
   }
 
   .db-loading {
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 16px; color: #475569; font-size: 14px;
+    gap: 16px; color: #64748b; font-size: 14px; min-height: 100vh;
   }
 
   @keyframes spin { to { transform: rotate(360deg); } }
   .db-spinner {
-    width: 32px; height: 32px; border: 2px solid #1a2828;
-    border-top-color: #108280; border-radius: 50%;
+    width: 30px; height: 30px; border: 2px solid #e2e8f0;
+    border-top-color: #0f766e; border-radius: 50%;
     animation: spin .7s linear infinite;
   }
 
-  /* HERO */
+  /* ── HERO ── */
   .db-hero {
-    position: relative; overflow: hidden;
-    padding: 52px 32px 48px; background: #080d0d;
+    background: linear-gradient(135deg, #0f766e 0%, #0d9488 50%, #0891b2 100%);
+    padding: 40px 32px 36px;
   }
-  .db-hero-grid {
-    position: absolute; inset: 0;
-    background-image: linear-gradient(rgba(16,130,128,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(16,130,128,.05) 1px, transparent 1px);
-    background-size: 48px 48px;
-    mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, black 30%, transparent 100%);
+  .db-hero-inner {
+    max-width: 1200px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between; gap: 24px;
+    flex-wrap: wrap;
   }
-  .db-hero-glow {
-    position: absolute; top: -120px; left: 50%; transform: translateX(-50%);
-    width: 600px; height: 400px;
-    background: radial-gradient(ellipse, rgba(16,130,128,.15) 0%, transparent 70%);
-    pointer-events: none;
-  }
-  .db-hero-inner { position: relative; max-width: 1200px; margin: 0 auto; }
   .db-hero-chip {
-    display: inline-block; font-family: 'DM Mono', monospace; font-size: 10px;
-    font-weight: 500; letter-spacing: .18em; text-transform: uppercase;
-    color: #108280; background: rgba(16,130,128,.1); border: 1px solid rgba(16,130,128,.2);
-    border-radius: 100px; padding: 4px 14px; margin-bottom: 16px;
+    display: inline-block; font-size: 10px; font-weight: 700;
+    letter-spacing: .14em; text-transform: uppercase;
+    color: rgba(255,255,255,.8); background: rgba(255,255,255,.15);
+    border: 1px solid rgba(255,255,255,.25); border-radius: 100px;
+    padding: 3px 12px; margin-bottom: 12px;
   }
-  .db-hero-title { font-size: clamp(24px, 4vw, 38px); font-weight: 800; color: #f1f5f9; letter-spacing: -.025em; margin: 0 0 10px; }
-  .db-hero-name { color: #2dd4bf; }
-  .db-hero-meta { display: flex; align-items: center; gap: 10px; font-size: 14px; color: #475569; }
-  .db-hero-meta strong { color: #94a3b8; }
-  .db-dot { width: 3px; height: 3px; border-radius: 50%; background: #334155; }
+  .db-hero-title {
+    font-size: clamp(22px, 3.5vw, 34px); font-weight: 800;
+    color: #fff; letter-spacing: -.02em; margin: 0 0 8px;
+  }
+  .db-hero-name { color: #ccfbf1; }
+  .db-hero-meta { display: flex; align-items: center; gap: 10px; font-size: 13px; color: rgba(255,255,255,.75); }
+  .db-hero-meta strong { color: #fff; }
+  .db-dot { width: 3px; height: 3px; border-radius: 50%; background: rgba(255,255,255,.4); }
 
-  /* CONTENT */
-  .db-content { max-width: 1200px; margin: 0 auto; padding: 28px 24px 0; display: flex; flex-direction: column; gap: 20px; }
+  .db-hero-stats { display: flex; gap: 12px; flex-wrap: wrap; }
+  .hero-stat {
+    background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.2);
+    border-radius: 14px; padding: 14px 20px; text-align: center; min-width: 80px;
+  }
+  .hero-stat-num { font-size: 26px; font-weight: 800; color: #fff; line-height: 1; }
+  .hero-stat-label { font-size: 11px; color: rgba(255,255,255,.7); margin-top: 4px; font-weight: 600; }
 
-  /* NAV CARDS */
+  /* ── CONTENT ── */
+  .db-content {
+    max-width: 1200px; margin: 0 auto;
+    padding: 28px 24px 0;
+    display: flex; flex-direction: column; gap: 20px;
+  }
+
+  /* ── NAV CARDS ── */
   .nav-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
   @media (max-width: 680px) { .nav-grid { grid-template-columns: 1fr; } }
 
   .nav-card {
-    background: #0f1717; border: 1px solid #1a2828; border-radius: 16px;
-    padding: 22px; display: flex; flex-direction: column; gap: 10px;
+    background: #fff; border: 1px solid #e2e8f0; border-radius: 16px;
+    padding: 20px; display: flex; flex-direction: column; gap: 10px;
     text-decoration: none; transition: border-color .18s, transform .15s, box-shadow .18s;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06);
   }
-  .nav-card:hover { border-color: rgba(16,130,128,.4); transform: translateY(-2px); box-shadow: 0 8px 28px rgba(16,130,128,.1); }
-  .nav-icon { width: 40px; height: 40px; background: rgba(16,130,128,.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #2dd4bf; }
-  .nav-title { font-size: 14px; font-weight: 700; color: #e2e8f0; margin: 0; }
-  .nav-desc { font-size: 12px; color: #475569; margin: 0; line-height: 1.5; }
+  .nav-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.1); }
+  .nav-card-teal:hover   { border-color: #0d9488; }
+  .nav-card-blue:hover   { border-color: #3b82f6; }
+  .nav-card-violet:hover { border-color: #7c3aed; }
+  .nav-card-orange:hover { border-color: #f97316; }
 
-  /* SECTIONS */
-  .db-section { background: #0f1717; border: 1px solid #1a2828; border-radius: 18px; overflow: hidden; }
-  .section-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 22px 24px 18px; border-bottom: 1px solid #1a2828; }
-  .section-line { width: 3px; height: 18px; border-radius: 2px; background: #108280; display: inline-block; margin-right: 10px; vertical-align: middle; }
+  .nav-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .nav-card-teal   .nav-icon { background: #f0fdfa; color: #0f766e; }
+  .nav-card-blue   .nav-icon { background: #eff6ff; color: #2563eb; }
+  .nav-card-violet .nav-icon { background: #f5f3ff; color: #6d28d9; }
+  .nav-card-orange .nav-icon { background: #fff7ed; color: #c2410c; }
+
+  .nav-title { font-size: 14px; font-weight: 700; color: #0f172a; margin: 0; }
+  .nav-desc  { font-size: 12px; color: #64748b; margin: 0; line-height: 1.5; }
+
+  /* ── SECTIONS ── */
+  .db-section {
+    background: #fff; border: 1px solid #e2e8f0; border-radius: 16px;
+    overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.05);
+  }
+  .section-header {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 18px 24px; border-bottom: 1px solid #f1f5f9;
+    background: #fafafa;
+  }
+  .section-line { width: 3px; height: 18px; border-radius: 2px; background: #0d9488; flex-shrink: 0; }
   .line-orange { background: #f97316; }
-  .section-title { font-size: 16px; font-weight: 700; color: #e2e8f0; margin: 0; display: inline; }
-  .section-badge { font-size: 9px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; border-radius: 100px; padding: 2px 8px; margin-left: 8px; }
-  .badge-teal { background: rgba(16,130,128,.12); color: #2dd4bf; }
-  .badge-orange { background: rgba(249,115,22,.12); color: #fb923c; }
+  .section-title { font-size: 15px; font-weight: 700; color: #0f172a; margin: 0; }
+  .section-badge {
+    font-size: 9px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
+    border-radius: 100px; padding: 2px 8px; margin-left: 8px; vertical-align: middle;
+  }
+  .badge-teal   { background: #f0fdfa; color: #0f766e; border: 1px solid #99f6e4; }
+  .badge-orange { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
 
-  /* TABLE */
+  /* ── TABLE ── */
   .db-table-wrap { overflow-x: auto; }
   .db-table { width: 100%; min-width: 640px; border-collapse: collapse; }
-  .db-th { padding: 10px 16px; font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #475569; background: #0b1313; border-bottom: 1px solid #1a2828; }
-  .db-tr { transition: background .12s; }
-  .db-tr:hover { background: rgba(16,130,128,.04); }
-  .db-tr + .db-tr { border-top: 1px solid #1a2828; }
+  .db-th {
+    padding: 10px 16px; font-size: 10px; font-weight: 700;
+    letter-spacing: .08em; text-transform: uppercase;
+    color: #94a3b8; background: #f8fafc; border-bottom: 1px solid #f1f5f9;
+  }
+  .db-tr { transition: background .1s; }
+  .db-tr:hover { background: #f8fafc; }
+  .db-tr + .db-tr { border-top: 1px solid #f1f5f9; }
   .db-td { padding: 12px 16px; vertical-align: middle; }
-  .td-main { font-size: 13px; font-weight: 600; color: #e2e8f0; }
-  .td-sub { font-size: 11px; color: #475569; margin-top: 2px; }
+  .td-main  { font-size: 13px; font-weight: 600; color: #0f172a; }
+  .td-sub   { font-size: 11px; color: #94a3b8; margin-top: 2px; }
   .td-muted { font-size: 13px; color: #64748b; }
-  .td-mono { font-family: 'DM Mono', monospace; font-size: 12px; color: #94a3b8; }
+  .td-mono  { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; color: #64748b; }
 
-  /* PILLS */
-  .status-pill { display: inline-flex; align-items: center; border-radius: 100px; border: 1px solid; padding: 2px 10px; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
-  .pill-green { background: rgba(34,197,94,.1); color: #4ade80; border-color: rgba(34,197,94,.2); }
-  .pill-yellow { background: rgba(234,179,8,.1); color: #facc15; border-color: rgba(234,179,8,.2); }
+  /* ── STATUS PILLS ── */
+  .status-pill {
+    display: inline-flex; align-items: center; border-radius: 100px; border: 1px solid;
+    padding: 2px 10px; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  }
+  .pill-green { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
+  .pill-amber { background: #fffbeb; color: #b45309; border-color: #fde68a; }
 
-  /* BUTTONS */
+  /* ── BUTTONS ── */
   .action-row { display: flex; justify-content: flex-end; gap: 6px; flex-wrap: wrap; }
-  .btn-teal-sm { background: rgba(16,130,128,.15); color: #2dd4bf; border: 1px solid rgba(16,130,128,.25); border-radius: 8px; padding: 6px 12px; font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 700; cursor: pointer; text-decoration: none; transition: background .15s; white-space: nowrap; }
-  .btn-teal-sm:hover { background: rgba(16,130,128,.3); }
-  .btn-green-sm { background: rgba(34,197,94,.12); color: #4ade80; border: 1px solid rgba(34,197,94,.2); border-radius: 8px; padding: 6px 12px; font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 700; cursor: pointer; transition: background .15s; }
-  .btn-green-sm:hover { background: rgba(34,197,94,.22); }
-  .btn-red-sm { background: rgba(239,68,68,.12); color: #f87171; border: 1px solid rgba(239,68,68,.2); border-radius: 8px; padding: 6px 12px; font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 700; cursor: pointer; transition: background .15s; }
-  .btn-red-sm:hover { background: rgba(239,68,68,.22); }
-  .btn-ghost-sm { background: rgba(255,255,255,.04); color: #94a3b8; border: 1px solid #1a2828; border-radius: 8px; padding: 6px 12px; font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 700; cursor: pointer; text-decoration: none; transition: all .15s; white-space: nowrap; display: inline-block; }
-  .btn-ghost-sm:hover { background: rgba(16,130,128,.12); color: #2dd4bf; border-color: rgba(16,130,128,.25); }
 
-  .btn-logout { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,.04); border: 1px solid #1a2828; border-radius: 10px; padding: 10px 18px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: #64748b; cursor: pointer; transition: all .15s; margin-top: 4px; }
-  .btn-logout:hover { background: rgba(239,68,68,.08); color: #f87171; border-color: rgba(239,68,68,.2); }
+  .btn-outline-sm {
+    background: #fff; color: #475569; border: 1px solid #e2e8f0; border-radius: 8px;
+    padding: 6px 12px; font-size: 11px; font-weight: 700; cursor: pointer;
+    text-decoration: none; display: inline-block; transition: all .15s; white-space: nowrap;
+  }
+  .btn-outline-sm:hover { background: #f8fafc; border-color: #cbd5e1; color: #0f172a; }
 
-  /* LISTINGS */
+  .btn-teal-sm {
+    background: #f0fdfa; color: #0f766e; border: 1px solid #99f6e4; border-radius: 8px;
+    padding: 7px 14px; font-size: 12px; font-weight: 700; cursor: pointer;
+    text-decoration: none; display: inline-block; transition: background .15s; white-space: nowrap;
+  }
+  .btn-teal-sm:hover { background: #ccfbf1; }
+
+  .btn-green-sm {
+    background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; border-radius: 8px;
+    padding: 6px 12px; font-size: 11px; font-weight: 700; cursor: pointer; transition: background .15s;
+  }
+  .btn-green-sm:hover { background: #dcfce7; }
+
+  .btn-red-sm {
+    background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; border-radius: 8px;
+    padding: 6px 12px; font-size: 11px; font-weight: 700; cursor: pointer; transition: background .15s;
+  }
+  .btn-red-sm:hover { background: #fee2e2; }
+
+  .btn-logout {
+    display: flex; align-items: center; gap: 8px;
+    background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;
+    padding: 10px 18px; font-size: 13px; font-weight: 600; color: #64748b;
+    cursor: pointer; transition: all .15s; margin-top: 4px; width: fit-content;
+  }
+  .btn-logout:hover { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+
+  /* ── LISTINGS ── */
   .listings-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 16px; }
   @media (max-width: 600px) { .listings-grid { grid-template-columns: 1fr; } }
-  .listing-card { display: flex; justify-content: space-between; align-items: center; background: #0b1313; border: 1px solid #1a2828; border-radius: 12px; padding: 14px 16px; cursor: pointer; transition: border-color .15s; }
-  .listing-card:hover { border-color: rgba(16,130,128,.35); }
+  .listing-card {
+    display: flex; justify-content: space-between; align-items: center;
+    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;
+    padding: 14px 16px; cursor: pointer; transition: border-color .15s, box-shadow .15s;
+  }
+  .listing-card:hover { border-color: #0d9488; box-shadow: 0 2px 8px rgba(13,148,136,.1); }
 
-  /* EMPTY */
+  /* ── EMPTY ── */
   .db-empty { padding: 40px 24px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; }
-  .empty-icon { width: 44px; height: 44px; background: rgba(255,255,255,.04); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #334155; }
-  .empty-title { font-size: 14px; font-weight: 700; color: #64748b; }
-  .empty-desc { font-size: 12px; color: #334155; }
+  .empty-icon { width: 44px; height: 44px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #94a3b8; }
+  .empty-title { font-size: 14px; font-weight: 600; color: #64748b; }
+  .empty-desc { font-size: 12px; color: #94a3b8; }
 
-  /* PARENT BADGE */
-  .parent-badge { font-family: 'DM Mono', monospace; font-size: 11px; background: rgba(99,102,241,.1); color: #a5b4fc; border: 1px solid rgba(99,102,241,.2); border-radius: 6px; padding: 2px 8px; }
+  /* ── PARENT BADGE ── */
+  .parent-badge {
+    font-family: monospace; font-size: 11px;
+    background: #f5f3ff; color: #6d28d9; border: 1px solid #ddd6fe;
+    border-radius: 6px; padding: 2px 8px;
+  }
 
   /* ── REGISTRATIONS ── */
-  .regs-list { display: flex; flex-direction: column; gap: 0; }
-
-  .reg-card { border-bottom: 1px solid #1a2828; transition: background .12s; }
+  .regs-list { display: flex; flex-direction: column; }
+  .reg-card { border-bottom: 1px solid #f1f5f9; transition: background .1s; }
   .reg-card:last-child { border-bottom: none; }
-  .reg-card-open { background: rgba(16,130,128,.03); }
+  .reg-card-open { background: #fafffe; }
 
   .reg-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 20px; cursor: pointer; }
-  .reg-head:hover { background: rgba(255,255,255,.02); }
+  .reg-head:hover { background: #f8fafc; }
   .reg-head-left { display: flex; align-items: center; gap: 14px; }
   .reg-head-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .reg-company { font-size: 14px; font-weight: 700; color: #e2e8f0; }
+  .reg-company { font-size: 14px; font-weight: 700; color: #0f172a; }
 
   .pkg-badge { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; border-radius: 100px; border: 1px solid; padding: 2px 10px; }
-  .pkg-emerald { background: rgba(16,185,129,.1); color: #34d399; border-color: rgba(16,185,129,.25); }
-  .pkg-yellow  { background: rgba(245,158,11,.1); color: #fbbf24; border-color: rgba(245,158,11,.25); }
-  .pkg-blue    { background: rgba(59,130,246,.1); color: #60a5fa; border-color: rgba(59,130,246,.25); }
-  .pkg-gray    { background: rgba(100,116,139,.1); color: #94a3b8; border-color: rgba(100,116,139,.25); }
+  .pkg-emerald { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
+  .pkg-amber   { background: #fffbeb; color: #b45309; border-color: #fde68a; }
+  .pkg-blue    { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+  .pkg-gray    { background: #f8fafc; color: #64748b; border-color: #e2e8f0; }
 
-  .lang-badge { font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 600; background: rgba(255,255,255,.05); border: 1px solid #1a2828; border-radius: 4px; padding: 2px 6px; color: #64748b; }
+  .lang-badge { font-family: monospace; font-size: 9px; font-weight: 600; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 4px; padding: 2px 6px; color: #64748b; }
 
-  .reg-chevron { color: #334155; transition: transform .2s; flex-shrink: 0; }
-  .reg-chevron-open { transform: rotate(180deg); color: #108280; }
+  .reg-chevron { color: #cbd5e1; transition: transform .2s; flex-shrink: 0; }
+  .reg-chevron-open { transform: rotate(180deg); color: #0d9488; }
 
-  .reg-body { border-top: 1px solid #1a2828; }
+  .reg-body { border-top: 1px solid #f1f5f9; }
 
   .reg-fields { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; }
   @media (max-width: 760px) { .reg-fields { grid-template-columns: repeat(2, 1fr); } }
   @media (max-width: 460px) { .reg-fields { grid-template-columns: 1fr; } }
 
-  .reg-field { padding: 12px 20px; border-right: 1px solid #1a2828; border-bottom: 1px solid #1a2828; }
+  .reg-field { padding: 12px 20px; border-right: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; }
   .reg-field:nth-child(4n) { border-right: none; }
-  .reg-field-val { font-size: 13px; font-weight: 600; color: #cbd5e1; display: block; margin-top: 3px; word-break: break-all; }
-  .reg-email { color: #2dd4bf; font-size: 12px; }
-  .field-label-sm { font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #334155; }
+  .reg-field-val { font-size: 13px; font-weight: 600; color: #1e293b; display: block; margin-top: 3px; word-break: break-all; }
+  .reg-email { color: #0f766e; font-size: 12px; }
+  .field-label-sm { font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #94a3b8; }
 
-  .reg-field-emerald { background: rgba(16,185,129,.04); }
-  .reg-field-emerald .reg-field-val { color: #34d399; }
-  .reg-field-yellow { background: rgba(245,158,11,.04); }
-  .reg-field-yellow .reg-field-val { color: #fbbf24; }
-  .reg-field-blue { background: rgba(59,130,246,.04); }
-  .reg-field-blue .reg-field-val { color: #60a5fa; }
-  .reg-field-highlight { background: rgba(16,130,128,.06); }
-  .reg-field-highlight .reg-field-val { color: #2dd4bf; }
+  .reg-field-emerald { background: #f0fdf4; }
+  .reg-field-emerald .reg-field-val { color: #15803d; }
+  .reg-field-amber { background: #fffbeb; }
+  .reg-field-amber .reg-field-val { color: #b45309; }
+  .reg-field-blue { background: #eff6ff; }
+  .reg-field-blue .reg-field-val { color: #1d4ed8; }
 
-  .reg-message { padding: 14px 20px; border-bottom: 1px solid #1a2828; background: rgba(255,255,255,.015); }
-  .reg-message-text { font-size: 13px; color: #64748b; line-height: 1.6; margin-top: 4px; }
+  .reg-message { padding: 14px 20px; border-bottom: 1px solid #f1f5f9; background: #fafafa; }
+  .reg-message-text { font-size: 13px; color: #475569; line-height: 1.6; margin-top: 4px; }
 
   .reg-actions { display: flex; align-items: center; gap: 10px; padding: 14px 20px; flex-wrap: wrap; }
-  .reg-role-select { background: #0b1313; border: 1px solid #1a2828; border-radius: 8px; padding: 7px 12px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: #e2e8f0; outline: none; cursor: pointer; }
-  .reg-role-select option { background: #0f1717; }
-  .btn-approve-reg { background: rgba(34,197,94,.12); color: #4ade80; border: 1px solid rgba(34,197,94,.2); border-radius: 8px; padding: 7px 16px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 700; cursor: pointer; transition: background .15s; }
-  .btn-approve-reg:hover:not(:disabled) { background: rgba(34,197,94,.22); }
-  .btn-approve-reg:disabled { opacity: .35; cursor: not-allowed; }
-  .btn-reject-reg { background: rgba(239,68,68,.1); color: #f87171; border: 1px solid rgba(239,68,68,.2); border-radius: 8px; padding: 7px 16px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 700; cursor: pointer; transition: background .15s; }
-  .btn-reject-reg:hover:not(:disabled) { background: rgba(239,68,68,.2); }
-  .btn-reject-reg:disabled { opacity: .35; cursor: not-allowed; }
+
+  .reg-role-select {
+    background: #fff; border: 1px solid #e2e8f0; border-radius: 8px;
+    padding: 7px 12px; font-size: 12px; font-weight: 600; color: #0f172a; outline: none; cursor: pointer;
+  }
+
+  .btn-approve-reg {
+    background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; border-radius: 8px;
+    padding: 7px 16px; font-size: 12px; font-weight: 700; cursor: pointer; transition: background .15s;
+  }
+  .btn-approve-reg:hover:not(:disabled) { background: #dcfce7; }
+  .btn-approve-reg:disabled { opacity: .4; cursor: not-allowed; }
+
+  .btn-reject-reg {
+    background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; border-radius: 8px;
+    padding: 7px 16px; font-size: 12px; font-weight: 700; cursor: pointer; transition: background .15s;
+  }
+  .btn-reject-reg:hover:not(:disabled) { background: #fee2e2; }
+  .btn-reject-reg:disabled { opacity: .4; cursor: not-allowed; }
+
+  .flex { display: flex; }
+  .items-center { align-items: center; }
+  .gap-3 { gap: 12px; }
+  .text-right { text-align: right; }
+  .font-mono { font-family: monospace; }
+  .text-xs { font-size: 11px; }
 `;
 
 const modalStyles = `
-  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,700;9..40,800&family=DM+Mono:wght@400;500&display=swap');
-
-  .modal-overlay { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.75); backdrop-filter: blur(8px); padding: 16px; }
-  .modal-box { background: #0f1717; border: 1px solid #1e2d2d; border-radius: 20px; width: 100%; max-width: 860px; max-height: 90vh; overflow-y: auto; font-family: 'DM Sans', sans-serif; }
-  .modal-header { position: sticky; top: 0; z-index: 10; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 20px 24px; border-bottom: 1px solid #1e2d2d; background: #0f1717; }
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center;
+    background: rgba(15,23,42,.5); backdrop-filter: blur(6px); padding: 16px;
+  }
+  .modal-box {
+    background: #fff; border: 1px solid #e2e8f0; border-radius: 20px;
+    width: 100%; max-width: 860px; max-height: 90vh; overflow-y: auto;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    box-shadow: 0 25px 60px rgba(0,0,0,.18);
+  }
+  .modal-header {
+    position: sticky; top: 0; z-index: 10; display: flex; align-items: flex-start;
+    justify-content: space-between; gap: 12px; padding: 20px 24px;
+    border-bottom: 1px solid #f1f5f9; background: #fff;
+  }
   .modal-chips { display: flex; gap: 6px; margin-bottom: 6px; }
   .chip { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; border-radius: 6px; padding: 2px 8px; }
-  .chip-gray { background: rgba(255,255,255,.05); color: #64748b; }
-  .chip-teal { background: rgba(16,130,128,.12); color: #2dd4bf; }
-  .modal-title { font-size: 20px; font-weight: 800; color: #f1f5f9; }
-  .modal-close { width: 34px; height: 34px; flex-shrink: 0; background: rgba(255,255,255,.05); border: 1px solid #1e2d2d; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #64748b; cursor: pointer; font-size: 12px; transition: all .15s; }
-  .modal-close:hover { background: rgba(239,68,68,.12); color: #f87171; border-color: rgba(239,68,68,.2); }
+  .chip-gray { background: #f1f5f9; color: #64748b; }
+  .chip-teal { background: #f0fdfa; color: #0f766e; border: 1px solid #99f6e4; }
+  .modal-title { font-size: 20px; font-weight: 800; color: #0f172a; }
+  .modal-close {
+    width: 34px; height: 34px; flex-shrink: 0; background: #f8fafc; border: 1px solid #e2e8f0;
+    border-radius: 8px; display: flex; align-items: center; justify-content: center;
+    color: #64748b; cursor: pointer; font-size: 12px; transition: all .15s;
+  }
+  .modal-close:hover { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
   .modal-body { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; padding: 24px; }
   @media (max-width: 640px) { .modal-body { grid-template-columns: 1fr; } }
   .modal-left { display: flex; flex-direction: column; gap: 20px; }
   .modal-right { display: flex; flex-direction: column; gap: 16px; }
-  .field-label { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #334155; margin-bottom: 8px; }
-  .field-label.teal { color: #108280; }
+  .field-label { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #94a3b8; margin-bottom: 8px; }
+  .field-label.teal { color: #0d9488; }
   .img-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .img-wrap { position: relative; border-radius: 10px; overflow: hidden; background: #0b1313; border: 1px solid #1a2828; }
+  .img-wrap { position: relative; border-radius: 10px; overflow: hidden; background: #f8fafc; border: 1px solid #e2e8f0; }
   .img-main { grid-column: span 2; height: 200px; }
   .img-thumb { height: 120px; }
-  .img-empty { height: 120px; border-radius: 10px; border: 1px dashed #1a2828; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #334155; font-style: italic; }
-  .prose-box { background: #0b1313; border: 1px solid #1a2828; border-radius: 10px; padding: 16px; font-size: 13px; color: #64748b; line-height: 1.65; }
+  .img-empty { height: 120px; border-radius: 10px; border: 1px dashed #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #94a3b8; font-style: italic; }
+  .prose-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; font-size: 13px; color: #475569; line-height: 1.65; }
   .data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .data-cell { background: #0b1313; border: 1px solid #1a2828; border-radius: 10px; padding: 12px; }
-  .data-cell-accent { background: rgba(245,158,11,.06); border-color: rgba(245,158,11,.2); }
-  .data-label { font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #334155; display: block; margin-bottom: 4px; }
-  .data-value { font-size: 13px; font-weight: 600; color: #e2e8f0; }
-  .data-value-accent { color: #fbbf24; }
-  .supplier-box { background: rgba(16,130,128,.06); border: 1px solid rgba(16,130,128,.15); border-radius: 12px; padding: 16px; }
-  .supplier-name { font-size: 15px; font-weight: 800; color: #e2e8f0; margin: 6px 0 2px; }
-  .supplier-email { font-size: 12px; color: #2dd4bf; }
-  .supplier-id { margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(16,130,128,.12); }
-  .supplier-id code { font-family: 'DM Mono', monospace; font-size: 12px; color: #64748b; display: block; margin-top: 3px; }
+  .data-cell { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; }
+  .data-cell-accent { background: #fffbeb; border-color: #fde68a; }
+  .data-label { font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #94a3b8; display: block; margin-bottom: 4px; }
+  .data-value { font-size: 13px; font-weight: 600; color: #0f172a; }
+  .data-value-accent { color: #b45309; }
+  .supplier-box { background: #f0fdfa; border: 1px solid #99f6e4; border-radius: 12px; padding: 16px; }
+  .supplier-name { font-size: 15px; font-weight: 800; color: #0f172a; margin: 6px 0 2px; }
+  .supplier-email { font-size: 12px; color: #0d9488; }
+  .supplier-id { margin-top: 12px; padding-top: 12px; border-top: 1px solid #ccfbf1; }
+  .supplier-id code { font-family: monospace; font-size: 12px; color: #64748b; display: block; margin-top: 3px; }
   .modal-actions { display: flex; flex-direction: column; gap: 8px; }
-  .btn-approve { background: rgba(34,197,94,.12); color: #4ade80; border: 1px solid rgba(34,197,94,.2); border-radius: 10px; padding: 12px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; transition: background .15s; }
-  .btn-approve:hover { background: rgba(34,197,94,.22); }
-  .btn-danger { background: rgba(239,68,68,.08); color: #f87171; border: 1px solid rgba(239,68,68,.15); border-radius: 10px; padding: 12px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; transition: all .15s; }
-  .btn-danger:hover { background: rgba(239,68,68,.18); }
+  .btn-approve { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; border-radius: 10px; padding: 12px; font-size: 13px; font-weight: 700; cursor: pointer; transition: background .15s; }
+  .btn-approve:hover { background: #dcfce7; }
+  .btn-danger { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; border-radius: 10px; padding: 12px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all .15s; }
+  .btn-danger:hover { background: #fee2e2; }
   .mt-6 { margin-top: 24px; }
 `;

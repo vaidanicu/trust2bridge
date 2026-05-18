@@ -91,19 +91,19 @@
   "added_to_basket": "Deja în coș"
   },
   "nav": {
-  "marketplace": "Marketplace",
+  "marketplace": "Piață",
   "what_to_do": "Ce doriți să faceți?",
-  "buy": "Cumpără",
-  "buy_desc": "Vizualizați produsele direct",
-  "search": "Oferă",
+  "buy": "Cumpărați",
+  "buy_desc": "Vizualizați produsele",
+  "search": "Oferiți un produs/serviciu",
   "search_desc": "Trimiteți o cerere către TrustBridge",
   "about": "Despre noi",
-  "Anbiten": "Căutare Produse/Servicii",
+  "Anbiten": "Căutare produse/servicii",
   "contact": "Contact",
   "login": "Autentificare",
   "register": "Înregistrare",
-  "contact_btn": "Contactați-ne acum",
-  "basket_btn": "Vezi coșul de cereri"
+  "contact_btn": "Contactați acum",
+  "basket_btn": "Vizualizați coșul de cereri"
 },
   "item_details": {
     "not_found_title": "Produsul nu există.",
