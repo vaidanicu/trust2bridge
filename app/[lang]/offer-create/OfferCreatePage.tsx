@@ -13,6 +13,7 @@ export default function OfferCreatePage({ dict, lang }: { dict: any; lang: strin
   const [loading, setLoading]             = useState(false);
   const [offerType, setOfferType]         = useState<OfferType>("ware");
   const [mainCat, setMainCat]             = useState("Food");
+  const [subCat, setSubCat] = useState("")
   const [accessGranted, setAccessGranted] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -304,12 +305,31 @@ export default function OfferCreatePage({ dict, lang }: { dict: any; lang: strin
             {/* 03 Kategorie */}
             <Section step="03" title={dict.offer.step3}>
               <div className="tb-grid2">
-                <TbSelect label={dict.offer.label_main_cat} name="main_category" value={mainCat} onChange={(e: any) => setMainCat(e.target.value)}>
-                  {Object.keys(dict.offer.categories).map((cat) => <option key={cat}>{cat}</option>)}
-                </TbSelect>
-                <TbSelect label={dict.offer.label_sub_cat} name="subcategory">
-                  {(dict.offer.categories[mainCat] || []).map((sub: string) => <option key={sub}>{sub}</option>)}
-                </TbSelect>
+                <TbSelect
+  label={dict.offer.label_main_cat}
+  name="main_category"
+  value={mainCat}
+  onChange={(e: any) => {
+    setMainCat(e.target.value);
+    setSubCat("");
+  }}
+>
+  {Object.keys(dict.offer.categories).map((cat) => (
+    <option key={cat}>{cat}</option>
+  ))}
+</TbSelect>
+
+<TbSelect
+  label={dict.offer.label_sub_cat}
+  name="subcategory"
+  value={subCat}
+  onChange={(e: any) => setSubCat(e.target.value)}
+>
+  <option value="">– selectați –</option>
+  {(dict.offer.categories[mainCat] || []).map((sub: string) => (
+    <option key={sub} value={sub}>{sub}</option>
+  ))}
+</TbSelect>
               </div>
             </Section>
 

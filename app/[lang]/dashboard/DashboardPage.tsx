@@ -391,17 +391,62 @@ export default function DashboardPage() {
               </div>
               <div className="db-modal-right">
                 <div className="db-modal-grid">
-                  <DR label={t(lang,"th_status")}    value={prodModal.wp_status === "publish" ? `✅ ${t(lang,"s_live")}` : `⏳ ${t(lang,"s_waiting")}`} />
-                  <DR label={t(lang,"th_product")}   value={prodModal.price ? `${prodModal.price} ${prodModal.currency}` : t(lang,"on_request")} />
-                  <DR label={t(lang,"d_article")}    value={prodModal.article_number} />
-                  <DR label={t(lang,"d_brand")}      value={prodModal.brand} />
-                  <DR label={t(lang,"d_origin")}     value={prodModal.origin} />
-                  <DR label={t(lang,"d_city")}       value={prodModal.location_city} />
-                  <DR label={t(lang,"d_condition")}  value={prodModal.condition} />
-                  <DR label={t(lang,"d_incoterm")}   value={prodModal.incoterm} />
-                  <DR label={t(lang,"d_countries")}  value={Array.isArray(prodModal.delivery_countries) ? prodModal.delivery_countries.join(", ") : (prodModal.delivery_countries as any)} />
-                  <DR label={t(lang,"d_transport")}  value={prodModal.transport_option} />
+                  <DR label={t(lang,"th_status")}       value={prodModal.wp_status === "publish" ? `✅ ${t(lang,"s_live")}` : `⏳ ${t(lang,"s_waiting")}`} />
+                  <DR label={t(lang,"th_product")}      value={prodModal.price ? `${prodModal.price} ${prodModal.currency}` : t(lang,"on_request")} />
+                  <DR label={t(lang,"d_price_unit")}    value={prodModal.price_unit} />
+                  <DR label={t(lang,"d_vat")}           value={prodModal.vat_note} />
+                  <DR label={t(lang,"d_article")}       value={prodModal.article_number} />
+                  <DR label={t(lang,"d_brand")}         value={prodModal.brand} />
+                  <DR label={t(lang,"d_origin")}        value={prodModal.origin} />
+                  <DR label={t(lang,"d_city")}          value={prodModal.location_city} />
+                  <DR label={t(lang,"d_condition")}     value={prodModal.condition} />
+                  <DR label={t(lang,"d_moq")}           value={prodModal.moq ? `${prodModal.moq} ${prodModal.moq_unit||""}`.trim() : null} />
+                  <DR label={t(lang,"d_incoterm")}      value={prodModal.incoterm} />
+                  <DR label={t(lang,"d_delivery_time")} value={prodModal.delivery_time} />
+                  <DR label={t(lang,"d_pickup")}        value={prodModal.pickup_location} />
+                  <DR label={t(lang,"d_transport")}     value={prodModal.transport_option} />
+                  <DR label={t(lang,"d_countries")}     value={Array.isArray(prodModal.delivery_countries) ? prodModal.delivery_countries.join(", ") : (prodModal.delivery_countries as any)} />
+                  <DR label={t(lang,"d_service_type")}  value={prodModal.service_type} />
+                  <DR label={t(lang,"d_service_mode")}  value={prodModal.service_mode} />
+                  <DR label={t(lang,"d_availability")}  value={prodModal.availability} />
+                  <DR label={t(lang,"d_billing")}       value={prodModal.billing_model} />
+                  {prodModal.service_area?.length ? <DR label={t(lang,"d_service_area")} value={Array.isArray(prodModal.service_area) ? prodModal.service_area.join(", ") : String(prodModal.service_area)} /> : null}
+                  <DR label={t(lang,"d_pub")}           value={prodModal.publication_status} />
+                  <DR label={t(lang,"d_contact")}       value={prodModal.contact_permission} />
+                  {prodModal.document_types?.length ? <DR label={t(lang,"d_doc_types")} value={Array.isArray(prodModal.document_types) ? prodModal.document_types.join(", ") : String(prodModal.document_types)} /> : null}
                 </div>
+                {(prodModal.technical_specs || prodModal.packaging) && (
+                  <div style={{display:"flex",flexDirection:"column",gap:10,marginTop:12}}>
+                    {prodModal.technical_specs && (
+                      <div>
+                        <p className="db-lbl" style={{marginBottom:5}}>🔧 {t(lang,"d_specs")}</p>
+                        <p style={{fontSize:12.5,color:"#94a3b8",lineHeight:1.6,margin:0,whiteSpace:"pre-wrap",background:"#111827",border:"1px solid #1e2d47",borderRadius:8,padding:"10px 12px"}}>{prodModal.technical_specs}</p>
+                      </div>
+                    )}
+                    {prodModal.packaging && (
+                      <div>
+                        <p className="db-lbl" style={{marginBottom:5}}>📦 {t(lang,"d_packaging")}</p>
+                        <p style={{fontSize:12.5,color:"#94a3b8",lineHeight:1.6,margin:0,whiteSpace:"pre-wrap",background:"#111827",border:"1px solid #1e2d47",borderRadius:8,padding:"10px 12px"}}>{prodModal.packaging}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+                {prodModal.documents?.length ? (
+                  <div>
+                    <p className="db-lbl" style={{marginBottom:6}}>📄 {t(lang,"d_documents")} ({prodModal.documents.length})</p>
+                    <div className="db-docs">
+                      {prodModal.documents.map(d => (
+                        <a key={d.id} href={d.url} target="_blank" rel="noreferrer" className="db-doc-link">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                          </svg>
+                          {d.name || d.url.split("/").pop()}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
                 <div className="db-modal-supplier">
                   <p className="db-lbl" style={{color:"#2dd4bf"}}>{t(lang,"th_supplier")}</p>
                   <p style={{fontSize:15,fontWeight:800,color:"#f1f5f9",margin:"4px 0 2px"}}>{prodModal.supplier_name || "—"}</p>
@@ -449,7 +494,7 @@ export default function DashboardPage() {
             </div>
             <div className="db-hdr-actions">
               {isSupplier && (
-                <Link href={`/${lang}/offer/create`} className="db-new-btn">
+                <Link href={`/${lang}/offer-create`} className="db-new-btn">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                   {t(lang,"new_offer")}
                 </Link>
@@ -544,7 +589,7 @@ export default function DashboardPage() {
           {isSupplier && !isAdmin && (
             <Card title={t(lang,"my_listings")}>
               {myItems.length === 0
-                ? <Empty txt={t(lang,"no_listings")} action={{ label:t(lang,"new_offer"), href:`/${lang}/offer/create` }} />
+                ? <Empty txt={t(lang,"no_listings")} action={{ label:t(lang,"new_offer"), href:`/${lang}/offer-create` }} />
                 : (
                   <div className="db-table-wrap">
                     <table className="db-table">
