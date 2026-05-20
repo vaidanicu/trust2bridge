@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useParams } from "next/navigation";
@@ -8,20 +8,39 @@ import { formatConvertedPrice } from "@/lib/currency";
 
 const API = "https://trustbridgeb2b.com/backend/wp-json/trustbridge/v1";
 
-interface TranslationDict { [key: string]: string; }
-interface Translations { [lang: string]: TranslationDict; }
-interface User { name: string; company?: string; roles: string[]; }
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface User { id: number; name: string; company?: string; roles: string[]; lang?: string; }
 
 interface ProductItem {
   id: number; internal_id?: string; title: string; description: string;
-  image?: string; gallery?: string[]; price?: string; currency?: string;
-  unit?: string; country?: string; category?: string; subcategory?: string;
-  wp_status?: string; supplier_name?: string; supplier_email?: string; type?: string;
+  short_description?: string; image?: string; gallery?: string[];
+  documents?: { id: number; url: string; name: string }[];
+  price?: string; currency?: string; price_status?: string; price_unit?: string;
+  vat_note?: string; unit?: string; country?: string; location_city?: string;
+  category?: string; subcategory?: string; wp_status?: string;
+  supplier_name?: string; supplier_email?: string; type?: string;
+  brand?: string; origin?: string; article_number?: string; condition?: string;
+  quantity?: string; moq?: string; moq_unit?: string;
+  technical_specs?: string; packaging?: string;
+  incoterm?: string; delivery_time?: string; delivery_countries?: string[];
+  transport_option?: string; pickup_location?: string;
+  service_type?: string; service_mode?: string; service_area?: string[];
+  availability?: string; billing_model?: string; document_types?: string[];
+  contact_permission?: string; publication_status?: string;
 }
 
 interface RequestItem {
-  id: number; date?: string; company?: string; delivery_country?: string;
-  status: string; parent_request?: number;
+  id: number; date?: string; company?: string; email?: string;
+  delivery_country?: string; transport_needed?: string; confidentiality?: string;
+  status: string; parent_request?: number | string;
+  offer_price?: string; offer_currency?: string;
+  offer_delivery_time?: string; offer_terms?: string; offer_message?: string;
+  customer_decision?: string; customer_decision_message?: string;
+  items?: {
+    id: number; title: string; quantity?: string; unit?: string;
+    delivery_location?: string; desired_date?: string; customer_note?: string;
+  }[];
 }
 
 interface RegistrationItem {
@@ -31,283 +50,260 @@ interface RegistrationItem {
   lang?: string; package?: string;
 }
 
-const translations: Translations = {
+// ─── Translations ─────────────────────────────────────────────────────────────
+
+const TR: Record<string, Record<string, string>> = {
   de: {
-    welcome: "Willkommen", company: "Firma", role: "Rolle", logout: "Abmelden",
-    loading: "Lade Dashboard...", marketplace: "Marktplatz",
-    marketplace_desc: "Produkte und Dienstleistungen ansehen.",
-    inbox: "Eingehende Anfragen", inbox_desc: "Neue Lieferantenanfragen prüfen.",
-    offers: "Angebote", offers_desc: "Antworten und Angebote verwalten.",
-    basket: "Anfragekorb", basket_desc: "Ihre aktuelle Beschaffungsanfrage bearbeiten.",
-    new_req: "Neue Anfrage", new_req_desc: "Produkt oder Dienstleistung suchen lassen.",
-    admin_area: "Admin Bereich", prod_approval: "Produktfreigabe", control: "Kontrolle",
-    no_pending_prods: "Keine Produkte zur Freigabe.",
-    no_pending_prods_desc: "Sobald Produkte eingereicht werden, erscheinen sie hier.",
-    my_listings: "Meine Angebote", no_listings: "Noch keine Angebote vorhanden.",
-    main_reqs_title: "Hauptanfragen von Kunden", sub_reqs_title: "Sub-Anfragen an Anbieter",
-    new_regs_title: "Neue Registrierungen", no_regs: "Keine neuen Registrierungen.",
-    no_regs_desc: "Sobald sich ein Unternehmen registriert, erscheint es hier.",
-    no_reqs: "Noch keine Anfragen vorhanden.",
-    no_reqs_desc: "Sobald Anfragen vorhanden sind, erscheinen sie hier.",
-    t_product: "Produkt", t_supplier: "Anbieter", t_status: "Status", t_action: "Aktion",
-    t_id: "ID", t_date: "Datum", t_company: "Firma", t_country: "Zielland",
-    t_contact: "Kontakt", t_email: "E-Mail", t_vat: "USt-IdNr.", t_reg_country: "Land",
-    t_type: "Typ", t_phone: "Telefon", t_package: "Paket", t_message: "Nachricht", t_lang: "Sprache",
-    btn_details: "Details", btn_approve: "Freigeben", btn_delete: "Löschen",
-    btn_reject: "Ablehnen", btn_open: "Öffnen",
-    m_gallery: "Galerie", m_no_images: "Keine Bilder", m_desc: "Beschreibung",
-    m_price: "Preis", m_unit: "Einheit", m_cat: "Kategorie", m_subcat: "Unterkategorie",
-    m_supp_info: "Anbieter", m_internal_id: "Interne ID", m_on_request: "Auf Anfrage",
-    m_approve_prod: "PRODUKT FREIGEBEN", m_delete_prod: "PRODUKT LÖSCHEN",
-    s_live: "Live", s_waiting: "Wartend", s_active: "Aktiv", s_in_review: "In Prüfung",
-    s_new: "Neu", s_processing: "In Bearbeitung", s_sent_partner: "An Partner gesendet",
-    s_sent_supp: "An Anbieter gesendet", s_offer_rec: "Angebot erhalten",
-    s_completed: "Abgeschlossen", s_rejected: "Abgelehnt",
-    confirm_delete: "Produkt unwiderruflich löschen?",
-    alert_reg_approved: "Registrierung genehmigt.", alert_reg_rejected: "Registrierung abgelehnt.",
-    alert_prod_approved: "Produkt freigegeben.", alert_prod_deleted: "Produkt gelöscht.",
-    alert_error: "Fehler.", alert_server_error: "Serverfehler."
+    welcome:"Willkommen zurück", overview:"Übersicht Ihrer TrustBridge-Aktivitäten",
+    dashboard:"Dashboard", company:"Firma", role:"Rolle", logout:"Abmelden",
+    loading:"Daten werden geladen…",
+    // nav
+    marketplace:"Marktplatz", marketplace_desc:"Produkte und Dienstleistungen ansehen.",
+    inbox:"Eingehende Anfragen", inbox_desc:"Neue Lieferantenanfragen prüfen.",
+    offers:"Angebote", offers_desc:"Antworten und Angebote verwalten.",
+    basket:"Anfragekorb", basket_desc:"Ihre Beschaffungsanfrage bearbeiten.",
+    new_req:"Neue Anfrage", new_req_desc:"Produkt oder Dienstleistung suchen lassen.",
+    new_offer:"Neues Angebot",
+    // sections
+    prod_approval:"Produktfreigabe", control:"Kontrolle",
+    my_listings:"Meine Angebote", no_listings:"Noch keine Angebote.",
+    main_reqs:"Hauptanfragen", sub_reqs:"Sub-Anfragen an Anbieter",
+    new_regs:"Neue Registrierungen", no_regs:"Keine neuen Registrierungen.",
+    no_reqs:"Noch keine Anfragen.", no_pending:"Keine Produkte zur Freigabe.",
+    // table headers
+    th_product:"Produkt", th_supplier:"Anbieter", th_status:"Status", th_action:"Aktion",
+    th_id:"ID", th_date:"Datum", th_company:"Firma", th_country:"Land",
+    th_contact:"Kontakt", th_email:"E-Mail", th_vat:"USt-IdNr.", th_type:"Typ",
+    th_phone:"Telefon", th_package:"Paket", th_message:"Nachricht", th_lang:"Sprache",
+    th_offer:"Angebotspreis", th_decision:"Entscheidung",
+    // detail labels
+    d_article:"Artikel-Nr.", d_brand:"Marke", d_origin:"Herkunft",
+    d_city:"Lagerort", d_condition:"Zustand", d_moq:"MOQ",
+    d_specs:"Technische Daten", d_packaging:"Verpackung",
+    d_short:"Kurzbeschreibung", d_description:"Beschreibung",
+    d_incoterm:"Incoterm", d_delivery_time:"Lieferzeit",
+    d_countries:"Lieferländer", d_transport:"Transport",
+    d_pickup:"Abholort", d_vat:"MwSt.", d_price_unit:"Preis je",
+    d_pub:"Veröffentlichung", d_contact:"Kontakt",
+    d_service_type:"Service-Typ", d_service_mode:"Modus",
+    d_service_area:"Servicegebiet", d_availability:"Verfügbarkeit",
+    d_billing:"Abrechnung", d_doc_types:"Dokumenttypen",
+    d_documents:"Dokumente", d_photos:"Fotos",
+    // buttons
+    btn_details:"Details", btn_approve:"Freigeben", btn_delete:"Löschen",
+    btn_reject:"Ablehnen", btn_open:"Öffnen",
+    btn_show:"Details anzeigen", btn_hide:"Zuklappen",
+    // statuses
+    s_live:"Live", s_waiting:"Wartend", s_active:"Aktiv", s_in_review:"In Prüfung",
+    s_new:"Neu", s_processing:"In Bearbeitung", s_sent_supp:"An Anbieter",
+    s_offer_rec:"Angebot erhalten", s_completed:"Abgeschlossen", s_rejected:"Abgelehnt",
+    // misc
+    on_request:"Auf Anfrage", confirm_delete:"Produkt unwiderruflich löschen?",
+    alert_approved:"Genehmigt.", alert_rejected:"Abgelehnt.", alert_deleted:"Gelöscht.", alert_error:"Fehler.",
+    stat_total:"Gesamt", stat_active:"Aktiv", stat_pending:"In Prüfung",
+    stat_rejected:"Abgelehnt", stat_requests:"Anfragen", stat_new:"Neu",
+    dec_accepted:"Angenommen ✓", dec_rejected:"Abgelehnt ✗",
+    req_items:"Positionen", req_item:"Artikel",
+    pkg_basic:"Basis-Präsenz", pkg_verified:"Verified Supplier", pkg_active:"Aktiver Vertrieb",
+    pkg_buyer:"Käufer-Paket", pkg_seller:"Verkäufer-Paket", pkg_search:"Produkt-/Dienstleistungssuche",
   },
   ro: {
-    welcome: "Bun venit", company: "Companie", role: "Rol", logout: "Deconectare",
-    loading: "Se încarcă...", marketplace: "Piață",
-    marketplace_desc: "Vizualizați produse și servicii.",
-    inbox: "Cereri primite", inbox_desc: "Verificați cererile noi.",
-    offers: "Oferte", offers_desc: "Gestionați răspunsurile și ofertele.",
-    basket: "Coș cereri", basket_desc: "Editați cererea curentă.",
-    new_req: "Cerere nouă", new_req_desc: "Solicitați căutarea unui produs.",
-    admin_area: "Admin", prod_approval: "Aprobare Produse", control: "Control",
-    no_pending_prods: "Nu există produse pentru aprobare.",
-    no_pending_prods_desc: "Produsele trimise vor apărea aici.",
-    my_listings: "Ofertele mele", no_listings: "Nu aveți nicio ofertă.",
-    main_reqs_title: "Cereri principale", sub_reqs_title: "Sub-cereri",
-    new_regs_title: "Înregistrări noi", no_regs: "Nu există înregistrări noi.",
-    no_regs_desc: "Companiile înregistrate vor apărea aici.",
-    no_reqs: "Nu există cereri.", no_reqs_desc: "Cererile primite vor apărea aici.",
-    t_product: "Produs", t_supplier: "Furnizor", t_status: "Status", t_action: "Acțiune",
-    t_id: "ID", t_date: "Data", t_company: "Companie", t_country: "Țară",
-    t_contact: "Contact", t_email: "Email", t_vat: "CIF", t_reg_country: "Țară",
-    t_type: "Tip", t_phone: "Telefon", t_package: "Pachet", t_message: "Mesaj", t_lang: "Limbă",
-    btn_details: "Detalii", btn_approve: "Aprobă", btn_delete: "Șterge",
-    btn_reject: "Respinge", btn_open: "Deschide",
-    m_gallery: "Galerie", m_no_images: "Fără imagini", m_desc: "Descriere",
-    m_price: "Preț", m_unit: "Unitate", m_cat: "Categorie", m_subcat: "Subcategorie",
-    m_supp_info: "Furnizor", m_internal_id: "ID Intern", m_on_request: "La cerere",
-    m_approve_prod: "APROBĂ PRODUSUL", m_delete_prod: "ȘTERGE PRODUSUL",
-    s_live: "Activ", s_waiting: "Așteptare", s_active: "Activ", s_in_review: "Verificare",
-    s_new: "Nou", s_processing: "Procesare", s_sent_partner: "Trimis partener",
-    s_sent_supp: "Trimis furnizor", s_offer_rec: "Ofertă primită",
-    s_completed: "Finalizat", s_rejected: "Respins",
-    confirm_delete: "Ștergeți produsul definitiv?",
-    alert_reg_approved: "Înregistrare aprobată.", alert_reg_rejected: "Înregistrare respinsă.",
-    alert_prod_approved: "Produs aprobat.", alert_prod_deleted: "Produs șters.",
-    alert_error: "Eroare.", alert_server_error: "Eroare de server."
+    welcome:"Bine ați revenit", overview:"Prezentare generală a activității pe TrustBridge",
+    dashboard:"Dashboard", company:"Companie", role:"Rol", logout:"Deconectare",
+    loading:"Se încarcă datele…",
+    marketplace:"Piață", marketplace_desc:"Vizualizați produse și servicii.",
+    inbox:"Cereri primite", inbox_desc:"Verificați cererile noi.",
+    offers:"Oferte", offers_desc:"Gestionați răspunsurile și ofertele.",
+    basket:"Coș cereri", basket_desc:"Editați cererea curentă.",
+    new_req:"Cerere nouă", new_req_desc:"Solicitați căutarea unui produs.",
+    new_offer:"Ofertă nouă",
+    prod_approval:"Aprobare Produse", control:"Control",
+    my_listings:"Ofertele mele", no_listings:"Nu aveți nicio ofertă.",
+    main_reqs:"Cereri principale", sub_reqs:"Sub-cereri",
+    new_regs:"Înregistrări noi", no_regs:"Nu există înregistrări noi.",
+    no_reqs:"Nu există cereri.", no_pending:"Nu există produse pentru aprobare.",
+    th_product:"Produs", th_supplier:"Furnizor", th_status:"Status", th_action:"Acțiune",
+    th_id:"ID", th_date:"Data", th_company:"Companie", th_country:"Țară",
+    th_contact:"Contact", th_email:"Email", th_vat:"CIF", th_type:"Tip",
+    th_phone:"Telefon", th_package:"Pachet", th_message:"Mesaj", th_lang:"Limbă",
+    th_offer:"Preț oferit", th_decision:"Decizie",
+    d_article:"Nr. articol", d_brand:"Marcă", d_origin:"Origine",
+    d_city:"Depozit / Oraș", d_condition:"Stare", d_moq:"MOQ",
+    d_specs:"Specificații tehnice", d_packaging:"Ambalaj",
+    d_short:"Descriere scurtă", d_description:"Descriere",
+    d_incoterm:"Incoterm", d_delivery_time:"Timp livrare",
+    d_countries:"Țări livrare", d_transport:"Transport",
+    d_pickup:"Loc ridicare", d_vat:"TVA", d_price_unit:"Preț per",
+    d_pub:"Publicare", d_contact:"Contact",
+    d_service_type:"Tip serviciu", d_service_mode:"Mod",
+    d_service_area:"Zonă serviciu", d_availability:"Disponibilitate",
+    d_billing:"Facturare", d_doc_types:"Tipuri documente",
+    d_documents:"Documente", d_photos:"Fotografii",
+    btn_details:"Detalii", btn_approve:"Aprobă", btn_delete:"Șterge",
+    btn_reject:"Respinge", btn_open:"Deschide",
+    btn_show:"Arată detalii", btn_hide:"Ascunde",
+    s_live:"Activ", s_waiting:"Așteptare", s_active:"Activ", s_in_review:"Verificare",
+    s_new:"Nou", s_processing:"Procesare", s_sent_supp:"Trimis furnizor",
+    s_offer_rec:"Ofertă primită", s_completed:"Finalizat", s_rejected:"Respins",
+    on_request:"La cerere", confirm_delete:"Ștergeți produsul definitiv?",
+    alert_approved:"Aprobat.", alert_rejected:"Respins.", alert_deleted:"Șters.", alert_error:"Eroare.",
+    stat_total:"Total", stat_active:"Active", stat_pending:"În verificare",
+    stat_rejected:"Respinse", stat_requests:"Cereri", stat_new:"Noi",
+    dec_accepted:"Acceptat ✓", dec_rejected:"Respins ✗",
+    req_items:"Poziții", req_item:"Articol",
+    pkg_basic:"Prezență de bază", pkg_verified:"Furnizor verificat", pkg_active:"Vânzare activă",
+    pkg_buyer:"Pachet Cumpărător", pkg_seller:"Pachet Vânzător", pkg_search:"Căutare Produse/Servicii",
   },
   hu: {
-    welcome: "Üdvözöljük", company: "Cég", role: "Szerepkör", logout: "Kijelentkezés",
-    loading: "Betöltés...", marketplace: "Piactér",
-    marketplace_desc: "Termékek és szolgáltatások megtekintése.",
-    inbox: "Beérkező kérések", inbox_desc: "Új ajánlatkérések ellenőrzése.",
-    offers: "Ajánlatok", offers_desc: "Válaszok és ajánlatok kezelése.",
-    basket: "Kosár", basket_desc: "Aktuális igény szerkesztése.",
-    new_req: "Új kérés", new_req_desc: "Termék keresése.",
-    admin_area: "Admin", prod_approval: "Termék jóváhagyása", control: "Ellenőrzés",
-    no_pending_prods: "Nincs jóváhagyásra váró termék.",
-    no_pending_prods_desc: "A beküldött termékek itt fognak megjelenni.",
-    my_listings: "Saját ajánlataim", no_listings: "Még nincsenek ajánlatai.",
-    main_reqs_title: "Fő kérések", sub_reqs_title: "Al-kérések",
-    new_regs_title: "Új regisztrációk", no_regs: "Nincsenek új regisztrációk.",
-    no_regs_desc: "A regisztrált cégek itt fognak megjelenni.",
-    no_reqs: "Nincsenek kérések.", no_reqs_desc: "A beérkező kérések itt fognak megjelenni.",
-    t_product: "Termék", t_supplier: "Beszállító", t_status: "Állapot", t_action: "Művelet",
-    t_id: "ID", t_date: "Dátum", t_company: "Cég", t_country: "Ország",
-    t_contact: "Kapcsolat", t_email: "E-mail", t_vat: "Adószám", t_reg_country: "Ország",
-    t_type: "Típus", t_phone: "Telefon", t_package: "Csomag", t_message: "Üzenet", t_lang: "Nyelv",
-    btn_details: "Részletek", btn_approve: "Jóváhagyás", btn_delete: "Törlés",
-    btn_reject: "Elutasítás", btn_open: "Megnyitás",
-    m_gallery: "Galéria", m_no_images: "Nincsenek képek", m_desc: "Leírás",
-    m_price: "Ár", m_unit: "Egység", m_cat: "Kategória", m_subcat: "Alkategória",
-    m_supp_info: "Beszállító", m_internal_id: "Belső ID", m_on_request: "Ajánlat alapján",
-    m_approve_prod: "TERMÉK JÓVÁHAGYÁSA", m_delete_prod: "TERMÉK TÖRLÉSE",
-    s_live: "Élő", s_waiting: "Várakozik", s_active: "Aktív", s_in_review: "Ellenőrzés",
-    s_new: "Új", s_processing: "Feldolgozás", s_sent_partner: "Partnernek küldve",
-    s_sent_supp: "Beszállítónak küldve", s_offer_rec: "Ajánlat beérkezett",
-    s_completed: "Befejezve", s_rejected: "Elutasítva",
-    confirm_delete: "Véglegesen törli a terméket?",
-    alert_reg_approved: "Regisztráció jóváhagyva.", alert_reg_rejected: "Regisztráció elutasítva.",
-    alert_prod_approved: "Termék jóváhagyva.", alert_prod_deleted: "Termék törölve.",
-    alert_error: "Hiba történt.", alert_server_error: "Szerverhiba."
-  }
+    welcome:"Üdvözöljük vissza", overview:"TrustBridge tevékenység áttekintése",
+    dashboard:"Vezérlőpult", company:"Cég", role:"Szerepkör", logout:"Kijelentkezés",
+    loading:"Adatok betöltése…",
+    marketplace:"Piactér", marketplace_desc:"Termékek és szolgáltatások megtekintése.",
+    inbox:"Beérkező kérések", inbox_desc:"Új ajánlatkérések ellenőrzése.",
+    offers:"Ajánlatok", offers_desc:"Válaszok és ajánlatok kezelése.",
+    basket:"Kosár", basket_desc:"Aktuális igény szerkesztése.",
+    new_req:"Új kérés", new_req_desc:"Termék keresése.",
+    new_offer:"Új ajánlat",
+    prod_approval:"Termék jóváhagyása", control:"Ellenőrzés",
+    my_listings:"Saját ajánlataim", no_listings:"Még nincsenek ajánlatai.",
+    main_reqs:"Fő kérések", sub_reqs:"Al-kérések",
+    new_regs:"Új regisztrációk", no_regs:"Nincsenek új regisztrációk.",
+    no_reqs:"Nincsenek kérések.", no_pending:"Nincs jóváhagyásra váró termék.",
+    th_product:"Termék", th_supplier:"Beszállító", th_status:"Állapot", th_action:"Művelet",
+    th_id:"ID", th_date:"Dátum", th_company:"Cég", th_country:"Ország",
+    th_contact:"Kapcsolat", th_email:"E-mail", th_vat:"Adószám", th_type:"Típus",
+    th_phone:"Telefon", th_package:"Csomag", th_message:"Üzenet", th_lang:"Nyelv",
+    th_offer:"Ajánlott ár", th_decision:"Döntés",
+    d_article:"Cikkszám", d_brand:"Márka", d_origin:"Származás",
+    d_city:"Raktár / Város", d_condition:"Állapot", d_moq:"MOQ",
+    d_specs:"Műszaki adatok", d_packaging:"Csomagolás",
+    d_short:"Rövid leírás", d_description:"Leírás",
+    d_incoterm:"Incoterm", d_delivery_time:"Szállítási idő",
+    d_countries:"Szállítási országok", d_transport:"Szállítás",
+    d_pickup:"Átvételi hely", d_vat:"ÁFA", d_price_unit:"Ár per",
+    d_pub:"Közzététel", d_contact:"Kapcsolat",
+    d_service_type:"Szolgáltatás típusa", d_service_mode:"Mód",
+    d_service_area:"Szolgáltatási terület", d_availability:"Elérhetőség",
+    d_billing:"Számlázás", d_doc_types:"Dokumentumtípusok",
+    d_documents:"Dokumentumok", d_photos:"Fotók",
+    btn_details:"Részletek", btn_approve:"Jóváhagyás", btn_delete:"Törlés",
+    btn_reject:"Elutasítás", btn_open:"Megnyitás",
+    btn_show:"Részletek", btn_hide:"Bezárás",
+    s_live:"Élő", s_waiting:"Várakozik", s_active:"Aktív", s_in_review:"Ellenőrzés",
+    s_new:"Új", s_processing:"Feldolgozás", s_sent_supp:"Beszállítónak küldve",
+    s_offer_rec:"Ajánlat beérkezett", s_completed:"Befejezve", s_rejected:"Elutasítva",
+    on_request:"Igény szerint", confirm_delete:"Véglegesen törli a terméket?",
+    alert_approved:"Jóváhagyva.", alert_rejected:"Elutasítva.", alert_deleted:"Törölve.", alert_error:"Hiba.",
+    stat_total:"Összesen", stat_active:"Aktív", stat_pending:"Ellenőrzés alatt",
+    stat_rejected:"Visszautasítva", stat_requests:"Megrendelések", stat_new:"Új",
+    dec_accepted:"Elfogadva ✓", dec_rejected:"Visszautasítva ✗",
+    req_items:"Tételek", req_item:"Tétel",
+    pkg_basic:"Alap megjelenés", pkg_verified:"Ellenőrzött beszállító", pkg_active:"Aktív értékesítés",
+    pkg_buyer:"Vevői csomag", pkg_seller:"Eladói csomag", pkg_search:"Termék-/Szolgáltatáskeresés",
+  },
 };
 
-function StatusBadge({ status, dict }: { status: string; dict: TranslationDict }) {
-  const map: Record<string, [string, string]> = {
-    nou:               [dict.s_new,          "bg-blue-50 text-blue-600 border-blue-200"],
-    pending:           [dict.s_waiting,      "bg-amber-50 text-amber-600 border-amber-200"],
-    pending_review:    [dict.s_waiting,      "bg-amber-50 text-amber-600 border-amber-200"],
-    processing:        [dict.s_processing,   "bg-violet-50 text-violet-600 border-violet-200"],
-    sent_to_partner:   [dict.s_sent_partner, "bg-purple-50 text-purple-600 border-purple-200"],
-    sent_to_supplier:  [dict.s_sent_supp,    "bg-cyan-50 text-cyan-700 border-cyan-200"],
-    offer_received:    [dict.s_offer_rec,    "bg-teal-50 text-teal-700 border-teal-200"],
-    completed:         [dict.s_completed,    "bg-emerald-50 text-emerald-700 border-emerald-200"],
-    rejected:          [dict.s_rejected,     "bg-red-50 text-red-600 border-red-200"],
-    approved:          [dict.s_active,       "bg-emerald-50 text-emerald-700 border-emerald-200"],
-  };
-  const [label, cls] = map[status] || [status, "bg-slate-100 text-slate-500 border-slate-200"];
-  return (
-    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${cls}`}>
-      {label}
-    </span>
-  );
+function t(lang: string, k: string) { return (TR[lang] ?? TR["de"])[k] ?? k; }
+
+// ─── Status badge ──────────────────────────────────────────────────────────────
+
+const STATUS_MAP: Record<string, [string, string]> = {
+  nou:              ["db-b-blue",   "s_new"],
+  neu:              ["db-b-blue",   "s_new"],
+  pending:          ["db-b-amber",  "s_waiting"],
+  processing:       ["db-b-purple", "s_processing"],
+  sent_to_supplier: ["db-b-cyan",   "s_sent_supp"],
+  offer_received:   ["db-b-teal",   "s_offer_rec"],
+  completed:        ["db-b-green",  "s_completed"],
+  rejected:         ["db-b-red",    "s_rejected"],
+  approved:         ["db-b-green",  "s_active"],
+};
+
+function StatusBadge({ status, lang }: { status: string; lang: string }) {
+  const [cls, key] = STATUS_MAP[status] ?? ["db-b-gray", ""];
+  const label = key ? t(lang, key) : status;
+  return <span className={`db-badge ${cls}`}>{label}</span>;
 }
 
-function ProductModal({ item, onClose, onApprove, onReject, isAdmin, dict, lang }: {
-  item: ProductItem; onClose: () => void; onApprove?: (id: number) => void;
-  onReject?: (id: number) => void; isAdmin: boolean; dict: TranslationDict; lang: string;
-}) {
-  const isLive = item.wp_status === "publish";
-  const allImages = [item.image, ...(item.gallery || [])].filter((img): img is string => !!img);
-  const priceDisplay = formatConvertedPrice(item.price, lang) ||
-    (item.price ? `${item.price} ${item.currency || "EUR"}` : dict.m_on_request);
-
-  return (
-    <>
-      <style>{modalStyles}</style>
-      <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
-        <div className="modal-box">
-          <div className="modal-header">
-            <div>
-              <div className="modal-chips">
-                <span className="chip chip-gray">REF: {item.internal_id || item.id}</span>
-                <span className="chip chip-teal">{item.type || "Angebot"}</span>
-              </div>
-              <h2 className="modal-title">{item.title}</h2>
-            </div>
-            <button onClick={onClose} className="modal-close">✕</button>
-          </div>
-          <div className="modal-body">
-            <div className="modal-left">
-              <p className="field-label">{dict.m_gallery}</p>
-              {allImages.length > 0 ? (
-                <div className="img-grid">
-                  {allImages.map((img, i) => (
-                    <div key={i} className={`img-wrap ${i === 0 ? "img-main" : "img-thumb"}`}>
-                      <Image src={img} alt="" fill className="object-cover" />
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="img-empty">{dict.m_no_images}</div>
-              )}
-              <p className="field-label mt-6">{dict.m_desc}</p>
-              <div className="prose-box" dangerouslySetInnerHTML={{ __html: item.description }} />
-            </div>
-            <div className="modal-right">
-              <div className="data-grid">
-                <DataCell label={dict.t_status} value={isLive ? `✅ ${dict.s_live}` : `⏳ ${dict.s_waiting}`} accent={!isLive} />
-                <DataCell label={dict.m_price} value={priceDisplay} />
-                <DataCell label={dict.m_unit} value={item.unit || "-"} />
-                <DataCell label={dict.t_country} value={item.country || "-"} />
-                <DataCell label={dict.m_cat} value={item.category || "-"} />
-                <DataCell label={dict.m_subcat} value={item.subcategory || "-"} />
-              </div>
-              <div className="supplier-box">
-                <p className="field-label teal">{dict.m_supp_info}</p>
-                <p className="supplier-name">{item.supplier_name || "---"}</p>
-                <p className="supplier-email">{item.supplier_email}</p>
-                <div className="supplier-id">
-                  <span className="field-label">{dict.m_internal_id}</span>
-                  <code>{item.internal_id || "N/A"}</code>
-                </div>
-              </div>
-              {isAdmin && (
-                <div className="modal-actions">
-                  {!isLive && (
-                    <button onClick={() => onApprove?.(item.id)} className="btn-approve">
-                      ✓ {dict.m_approve_prod}
-                    </button>
-                  )}
-                  <button onClick={() => { if (confirm(dict.confirm_delete)) onReject?.(item.id); }} className="btn-danger">
-                    ✕ {dict.m_delete_prod}
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    </>
-  );
+function ItemStatusBadge({ wpStatus, lang }: { wpStatus: string; lang: string }) {
+  if (wpStatus === "publish") return <span className="db-badge db-b-green">{t(lang,"s_active")}</span>;
+  if (wpStatus === "pending") return <span className="db-badge db-b-amber">{t(lang,"s_in_review")}</span>;
+  return <span className="db-badge db-b-red">{t(lang,"s_rejected")}</span>;
 }
 
-function DataCell({ label, value, accent = false }: { label: string; value: string; accent?: boolean }) {
+// ─── Package helpers ──────────────────────────────────────────────────────────
+
+const PKG_COLOR: Record<string, string> = {
+  basic:"db-b-green", verified:"db-b-amber", active:"db-b-blue",
+  buyer:"db-b-green", seller:"db-b-blue", search:"db-b-amber",
+};
+
+function PkgBadge({ pkg, lang }: { pkg: string; lang: string }) {
+  const label = t(lang, `pkg_${pkg}`) || pkg;
+  const cls = PKG_COLOR[pkg] || "db-b-gray";
+  return <span className={`db-badge ${cls}`}>{label}</span>;
+}
+
+// ─── Detail Row ───────────────────────────────────────────────────────────────
+
+function DR({ label, value }: { label: string; value?: string | null }) {
+  if (!value) return null;
   return (
-    <div className={`data-cell ${accent ? "data-cell-accent" : ""}`}>
-      <span className="data-label">{label}</span>
-      <span className={`data-value ${accent ? "data-value-accent" : ""}`}>{value}</span>
+    <div className="db-dr">
+      <span className="db-dl">{label}</span>
+      <span className="db-dv">{value}</span>
     </div>
   );
 }
 
+// ─── Main Component ───────────────────────────────────────────────────────────
+
 export default function DashboardPage() {
   const params = useParams();
   const lang = (params?.lang as string) || "de";
-  const dict = translations[lang] || translations.de;
 
-  const [user, setUser] = useState<User | null>(null);
-  const [requests, setRequests] = useState<RequestItem[]>([]);
+  const [user,          setUser]          = useState<User | null>(null);
+  const [requests,      setRequests]      = useState<RequestItem[]>([]);
   const [registrations, setRegistrations] = useState<RegistrationItem[]>([]);
-  const [myItems, setMyItems] = useState<ProductItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedItem, setSelectedItem] = useState<ProductItem | null>(null);
-  const [expandedReg, setExpandedReg] = useState<number | null>(null);
+  const [myItems,       setMyItems]       = useState<ProductItem[]>([]);
+  const [loading,       setLoading]       = useState(true);
+  const [expandedItem,  setExpandedItem]  = useState<number | null>(null);
+  const [expandedReq,   setExpandedReq]   = useState<number | null>(null);
+  const [expandedReg,   setExpandedReg]   = useState<number | null>(null);
+  const [prodModal,     setProdModal]     = useState<ProductItem | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem("trustbridge_token");
     if (!token) { window.location.href = `/${lang}/login`; return; }
+    const h = { Authorization: `Bearer ${token}` };
 
-    async function load() {
+    (async () => {
       try {
-        const token = localStorage.getItem("trustbridge_token");
-        const meRes = await fetch(`${API}/me`, { headers: { Authorization: `Bearer ${token}` } });
-        const meData = await meRes.json();
-        if (meData.code) { window.location.href = `/${lang}/login`; return; }
-        setUser(meData);
+        const me = await fetch(`${API}/me`, { headers: h }).then(r => r.json());
+        if (me.code) { window.location.href = `/${lang}/login`; return; }
+        setUser(me);
 
-        const isAdmin = meData.roles?.includes("administrator");
-        const isSupplier = meData.roles?.includes("tb_supplier") || meData.roles?.includes("TrustBridge_Supplier");
+        const isAdmin    = me.roles?.includes("administrator");
+        const isSupplier = me.roles?.includes("tb_supplier") || me.roles?.includes("TrustBridge_Supplier");
 
-        const reqRes = await fetch(`${API}/requests`, { headers: { Authorization: `Bearer ${token}` } });
-        setRequests(Array.isArray(await reqRes.json()) ? await fetch(`${API}/requests`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()) : []);
+        const reqs = await fetch(`${API}/requests?lang=${lang}`, { headers: h }).then(r => r.json());
+        setRequests(Array.isArray(reqs) ? reqs : []);
 
         if (isAdmin) {
-          const [itemsData, regData] = await Promise.all([
-            fetch(`${API}/items-admin?lang=${lang}`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
-            fetch(`${API}/registrations`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
+          const [items, regs] = await Promise.all([
+            fetch(`${API}/items-admin?lang=${lang}`, { headers: h }).then(r => r.json()),
+            fetch(`${API}/registrations`,            { headers: h }).then(r => r.json()),
           ]);
-          setMyItems(Array.isArray(itemsData) ? itemsData : []);
-          setRegistrations(Array.isArray(regData) ? regData : []);
+          setMyItems(Array.isArray(items) ? items : []);
+          setRegistrations(Array.isArray(regs) ? regs : []);
         } else if (isSupplier) {
-          const itemsData = await fetch(`${API}/my-items?lang=${lang}`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json());
-          setMyItems(Array.isArray(itemsData) ? itemsData : []);
+          const items = await fetch(`${API}/my-items?lang=${lang}`, { headers: h }).then(r => r.json());
+          setMyItems(Array.isArray(items) ? items : []);
         }
       } catch (e) { console.error(e); }
       finally { setLoading(false); }
-    }
-    load();
+    })();
   }, [lang]);
-
-  const handleRegistrationAction = async (id: number, action: "approve" | "reject", selectedRole?: string) => {
-    const token = localStorage.getItem("trustbridge_token");
-    const res = await fetch(`${API}/registration-action`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ id, action, role: selectedRole || "tb_buyer" }),
-    });
-    const data = await res.json();
-    if (data.success) { alert(action === "approve" ? dict.alert_reg_approved : dict.alert_reg_rejected); window.location.reload(); }
-    else alert(data.message || dict.alert_error);
-  };
 
   const handleItemAction = async (id: number, action: "approve" | "reject") => {
     const token = localStorage.getItem("trustbridge_token");
@@ -317,313 +313,600 @@ export default function DashboardPage() {
       body: JSON.stringify({ id, action }),
     });
     const data = await res.json();
-    if (data.success) { alert(action === "approve" ? dict.alert_prod_approved : dict.alert_prod_deleted); setSelectedItem(null); window.location.reload(); }
-    else alert(data.message || dict.alert_error);
+    if (data.success) { alert(action === "approve" ? t(lang,"alert_approved") : t(lang,"alert_deleted")); setProdModal(null); window.location.reload(); }
+    else alert(data.message || t(lang,"alert_error"));
+  };
+
+  const handleRegAction = async (id: number, action: "approve" | "reject", role?: string) => {
+    const token = localStorage.getItem("trustbridge_token");
+    const res = await fetch(`${API}/registration-action`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ id, action, role: role || "tb_buyer" }),
+    });
+    const data = await res.json();
+    if (data.success) { alert(action === "approve" ? t(lang,"alert_approved") : t(lang,"alert_rejected")); window.location.reload(); }
+    else alert(data.message || t(lang,"alert_error"));
   };
 
   if (loading) return (
     <>
-      <style>{globalStyles}</style>
-      <main className="db-page db-loading"><div className="db-spinner" /><p>{dict.loading}</p></main>
+      <style>{css}</style>
+      <div className="db-loading"><div className="db-spinner" /><p className="db-loading-txt">{t(lang,"loading")}</p></div>
     </>
   );
 
-  const isAdmin = user?.roles?.includes("administrator");
+  const isAdmin    = user?.roles?.includes("administrator");
   const isSupplier = user?.roles?.includes("tb_supplier") || user?.roles?.includes("TrustBridge_Supplier");
-  const visibleRequests = isAdmin ? requests.filter(r => !r.parent_request) : requests;
-  const subRequests = isAdmin ? requests.filter(r => r.parent_request) : [];
+  const isBuyer    = !isAdmin && !isSupplier;
 
-  const packageLabel: Record<string, string> = {
-    basic: lang === "ro" ? "Prezență de bază" : lang === "hu" ? "Alap megjelenés" : "Basis-Präsenz",
-    verified: lang === "ro" ? "Furnizor verificat" : lang === "hu" ? "Ellenőrzött beszállító" : "Verified Supplier",
-    active: lang === "ro" ? "Vânzare activă" : lang === "hu" ? "Aktív értékesítés" : "Aktiver Vertrieb",
-  };
-  const packageColor: Record<string, string> = {
-    basic: "pkg-emerald", verified: "pkg-amber", active: "pkg-blue",
+  const mainReqs = isAdmin ? requests.filter(r => !r.parent_request) : requests;
+  const subReqs  = isAdmin ? requests.filter(r => !!r.parent_request) : [];
+
+  const stats = {
+    total:    myItems.length,
+    active:   myItems.filter(i => i.wp_status === "publish").length,
+    pending:  myItems.filter(i => i.wp_status === "pending").length,
+    rejected: myItems.filter(i => i.wp_status === "draft").length,
+    reqs:     mainReqs.length,
+    newReqs:  mainReqs.filter(r => r.status === "nou" || r.status === "neu").length,
   };
 
   return (
     <>
-      <style>{globalStyles}</style>
+      <style>{css}</style>
 
-      {selectedItem && (
-        <ProductModal item={selectedItem} onClose={() => setSelectedItem(null)}
-          isAdmin={!!isAdmin} dict={dict} lang={lang}
-          onApprove={id => handleItemAction(id, "approve")}
-          onReject={id => handleItemAction(id, "reject")} />
+      {/* ── PRODUCT MODAL (Admin) ── */}
+      {prodModal && (
+        <div className="db-modal-overlay" onClick={e => e.target === e.currentTarget && setProdModal(null)}>
+          <div className="db-modal">
+            <div className="db-modal-hdr">
+              <div>
+                <div style={{display:"flex",gap:6,marginBottom:6}}>
+                  <span className="db-badge db-b-gray">REF: {prodModal.internal_id || prodModal.id}</span>
+                  <span className="db-badge db-b-teal">{prodModal.type || "Angebot"}</span>
+                </div>
+                <h2 className="db-modal-title">{prodModal.title}</h2>
+              </div>
+              <button onClick={() => setProdModal(null)} className="db-modal-close">✕</button>
+            </div>
+            <div className="db-modal-body">
+              <div className="db-modal-left">
+                <p className="db-lbl">{t(lang,"d_photos")}</p>
+                {[prodModal.image, ...(prodModal.gallery || [])].filter(Boolean).length > 0 ? (
+                  <div className="db-img-grid">
+                    {[prodModal.image, ...(prodModal.gallery || [])].filter((x): x is string => !!x).map((img, i) => (
+                      <div key={i} className={`db-img-wrap ${i === 0 ? "db-img-main" : "db-img-thumb"}`}>
+                        <Image src={img} alt="" fill className="object-cover" />
+                      </div>
+                    ))}
+                  </div>
+                ) : <div className="db-img-empty">Keine Bilder</div>}
+                {prodModal.description && (
+                  <>
+                    <p className="db-lbl" style={{marginTop:16}}>{t(lang,"d_description")}</p>
+                    <div className="db-prose" dangerouslySetInnerHTML={{ __html: prodModal.description }} />
+                  </>
+                )}
+              </div>
+              <div className="db-modal-right">
+                <div className="db-modal-grid">
+                  <DR label={t(lang,"th_status")}    value={prodModal.wp_status === "publish" ? `✅ ${t(lang,"s_live")}` : `⏳ ${t(lang,"s_waiting")}`} />
+                  <DR label={t(lang,"th_product")}   value={prodModal.price ? `${prodModal.price} ${prodModal.currency}` : t(lang,"on_request")} />
+                  <DR label={t(lang,"d_article")}    value={prodModal.article_number} />
+                  <DR label={t(lang,"d_brand")}      value={prodModal.brand} />
+                  <DR label={t(lang,"d_origin")}     value={prodModal.origin} />
+                  <DR label={t(lang,"d_city")}       value={prodModal.location_city} />
+                  <DR label={t(lang,"d_condition")}  value={prodModal.condition} />
+                  <DR label={t(lang,"d_incoterm")}   value={prodModal.incoterm} />
+                  <DR label={t(lang,"d_countries")}  value={Array.isArray(prodModal.delivery_countries) ? prodModal.delivery_countries.join(", ") : (prodModal.delivery_countries as any)} />
+                  <DR label={t(lang,"d_transport")}  value={prodModal.transport_option} />
+                </div>
+                <div className="db-modal-supplier">
+                  <p className="db-lbl" style={{color:"#2dd4bf"}}>{t(lang,"th_supplier")}</p>
+                  <p style={{fontSize:15,fontWeight:800,color:"#f1f5f9",margin:"4px 0 2px"}}>{prodModal.supplier_name || "—"}</p>
+                  <p style={{fontSize:12,color:"#0d9488"}}>{prodModal.supplier_email}</p>
+                </div>
+                {isAdmin && (
+                  <div style={{display:"flex",flexDirection:"column",gap:8,marginTop:8}}>
+                    {prodModal.wp_status !== "publish" && (
+                      <button onClick={() => handleItemAction(prodModal.id,"approve")} className="db-btn-approve-big">
+                        ✓ {t(lang,"btn_approve").toUpperCase()}
+                      </button>
+                    )}
+                    <button onClick={() => { if(confirm(t(lang,"confirm_delete"))) handleItemAction(prodModal.id,"reject"); }} className="db-btn-danger-big">
+                      ✕ {t(lang,"btn_delete").toUpperCase()}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       <main className="db-page">
 
-        {/* HERO */}
-        <header className="db-hero">
-          <div className="db-hero-inner">
-            <div className="db-hero-left">
-              <span className="db-hero-chip">TrustBridge Dashboard</span>
-              <h1 className="db-hero-title">
-                {dict.welcome}, <span className="db-hero-name">{user?.name}</span>
-              </h1>
-              <p className="db-hero-meta">
-                <span>{dict.company}: <strong>{user?.company || "—"}</strong></span>
-                <span className="db-dot" />
-                <span>{dict.role}: <strong>{user?.roles?.[0]}</strong></span>
+        {/* ── HEADER ── */}
+        <div className="db-hdr">
+          <div className="db-hdr-grid" /><div className="db-hdr-glow" />
+          <div className="db-hdr-inner">
+            <div>
+              <p className="db-hdr-chip">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                  <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+                </svg>
+                {t(lang,"dashboard")}
               </p>
+              <h1 className="db-hdr-title">{t(lang,"welcome")}{user?.name ? `, ${user.name.split(" ")[0]}` : ""}</h1>
+              <p className="db-hdr-sub">{t(lang,"overview")}</p>
+              <div className="db-hdr-meta">
+                <span>{t(lang,"company")}: <strong>{user?.company || "—"}</strong></span>
+                <span className="db-dot" />
+                <span>{t(lang,"role")}: <strong>{user?.roles?.[0]}</strong></span>
+              </div>
             </div>
-            <div className="db-hero-stats">
-              <div className="hero-stat">
-                <p className="hero-stat-num">{visibleRequests.length}</p>
-                <p className="hero-stat-label">{dict.basket}</p>
-              </div>
-              <div className="hero-stat">
-                <p className="hero-stat-num">{myItems.length}</p>
-                <p className="hero-stat-label">{dict.my_listings}</p>
-              </div>
-              {isAdmin && (
-                <div className="hero-stat">
-                  <p className="hero-stat-num">{registrations.length}</p>
-                  <p className="hero-stat-label">{dict.new_regs_title}</p>
-                </div>
+            <div className="db-hdr-actions">
+              {isSupplier && (
+                <Link href={`/${lang}/offer/create`} className="db-new-btn">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  {t(lang,"new_offer")}
+                </Link>
               )}
+              <button onClick={() => { localStorage.clear(); window.location.href = `/${lang}/login`; }} className="db-logout-btn">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                {t(lang,"logout")}
+              </button>
             </div>
           </div>
-        </header>
+        </div>
 
-        <div className="db-content">
+        <div className="db-body">
 
-          {/* NAV CARDS */}
-          <div className="nav-grid">
-            <NavCard title={dict.marketplace} desc={dict.marketplace_desc} href={`/${lang}/marketplace`} color="teal" icon={
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-            } />
-            {isSupplier ? (
-              <>
-                <NavCard title={dict.inbox} desc={dict.inbox_desc} href={`/${lang}/dashboard`} color="blue" icon={
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
-                } />
-                <NavCard title={dict.offers} desc={dict.offers_desc} href={`/${lang}/dashboard`} color="violet" icon={
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-                } />
-              </>
-            ) : (
-              <>
-                <NavCard title={dict.basket} desc={dict.basket_desc} href={`/${lang}/request-basket`} color="blue" icon={
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-                } />
-                <NavCard title={dict.new_req} desc={dict.new_req_desc} href={`/${lang}/request-basket`} color="orange" icon={
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                } />
-              </>
-            )}
+          {/* ── STATS (supplier & admin) ── */}
+          {(isSupplier || isAdmin) && (
+            <div className="db-stats">
+              {([
+                { val:stats.total,    lbl:t(lang,"stat_total"),    c:"#0d9488" },
+                { val:stats.active,   lbl:t(lang,"stat_active"),   c:"#22c55e" },
+                { val:stats.pending,  lbl:t(lang,"stat_pending"),  c:"#f59e0b" },
+                { val:stats.rejected, lbl:t(lang,"stat_rejected"), c:"#ef4444" },
+                { val:stats.reqs,     lbl:t(lang,"stat_requests"), c:"#3b82f6" },
+                { val:stats.newReqs,  lbl:t(lang,"stat_new"),      c:"#a855f7" },
+              ]).map(({val,lbl,c}) => (
+                <div key={lbl} className="db-stat" style={{"--sc":c} as React.CSSProperties}>
+                  <div className="db-stat-glow" />
+                  <p className="db-stat-val">{val}</p>
+                  <p className="db-stat-lbl">{lbl}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* ── NAV CARDS ── */}
+          <div className="db-nav-grid">
+            <NavCard href={`/${lang}/marketplace`} icon="🌐" title={t(lang,"marketplace")} desc={t(lang,"marketplace_desc")} color="teal" />
+            {isSupplier && <>
+              <NavCard href={`/${lang}/dashboard`} icon="📥" title={t(lang,"inbox")}  desc={t(lang,"inbox_desc")}  color="blue" />
+              <NavCard href={`/${lang}/dashboard`} icon="📊" title={t(lang,"offers")} desc={t(lang,"offers_desc")} color="violet" />
+            </>}
+            {isBuyer && <>
+              <NavCard href={`/${lang}/request-basket`} icon="🛒" title={t(lang,"basket")}  desc={t(lang,"basket_desc")}  color="blue" />
+              <NavCard href={`/${lang}/request-basket`} icon="➕" title={t(lang,"new_req")} desc={t(lang,"new_req_desc")} color="orange" />
+            </>}
           </div>
 
-          {/* ADMIN: PRODUCT APPROVAL */}
+          {/* ── ADMIN: PRODUCT APPROVAL ── */}
           {isAdmin && (
-            <Section title={dict.prod_approval} badge={dict.control} badgeColor="orange">
-              {myItems.length === 0 ? (
-                <Empty title={dict.no_pending_prods} desc={dict.no_pending_prods_desc} />
-              ) : (
+            <Card title={t(lang,"prod_approval")} badge={t(lang,"control")} badgeColor="orange">
+              {myItems.length === 0
+                ? <Empty txt={t(lang,"no_pending")} />
+                : (
+                  <div className="db-table-wrap">
+                    <table className="db-table">
+                      <thead><tr>
+                        <Th>{t(lang,"th_product")}</Th><Th>{t(lang,"th_supplier")}</Th>
+                        <Th>{t(lang,"th_status")}</Th><Th right>{t(lang,"th_action")}</Th>
+                      </tr></thead>
+                      <tbody>
+                        {myItems.map(item => (
+                          <tr key={item.id} className="db-tr">
+                            <td className="db-td">
+                              <p className="db-name">{item.title}</p>
+                              <p className="db-meta">{item.category}</p>
+                            </td>
+                            <td className="db-td">
+                              <p className="db-name">{item.supplier_name || "—"}</p>
+                              <p className="db-meta">{item.supplier_email}</p>
+                            </td>
+                            <td className="db-td"><ItemStatusBadge wpStatus={item.wp_status||""} lang={lang} /></td>
+                            <td className="db-td" style={{textAlign:"right"}}>
+                              <div className="db-action-row">
+                                <button onClick={() => setProdModal(item)} className="db-btn-sm db-btn-outline">{t(lang,"btn_details")}</button>
+                                {item.wp_status !== "publish" && (
+                                  <button onClick={() => handleItemAction(item.id,"approve")} className="db-btn-sm db-btn-green">{t(lang,"btn_approve")}</button>
+                                )}
+                                <button onClick={() => handleItemAction(item.id,"reject")} className="db-btn-sm db-btn-red">{t(lang,"btn_delete")}</button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )
+              }
+            </Card>
+          )}
+
+          {/* ── SUPPLIER: MY OFFERS (expandable) ── */}
+          {isSupplier && !isAdmin && (
+            <Card title={t(lang,"my_listings")}>
+              {myItems.length === 0
+                ? <Empty txt={t(lang,"no_listings")} action={{ label:t(lang,"new_offer"), href:`/${lang}/offer/create` }} />
+                : (
+                  <div className="db-table-wrap">
+                    <table className="db-table">
+                      <thead><tr>
+                        <Th style={{width:240}}>{t(lang,"th_product")}</Th>
+                        <Th>{t(lang,"th_type")}</Th>
+                        <Th>{t(lang,"th_supplier")/* category */}</Th>
+                        <Th>{t(lang,"th_product")/* price */}</Th>
+                        <Th>{t(lang,"stat_total")/* qty */}</Th>
+                        <Th>{t(lang,"th_status")}</Th>
+                        <Th style={{width:100}}>{t(lang,"th_action")}</Th>
+                      </tr></thead>
+                      <tbody>
+                        {myItems.map(item => {
+                          const open = expandedItem === item.id;
+                          const price = item.price_status === "request" || !item.price
+                            ? t(lang,"on_request")
+                            : `${item.price} ${item.currency}${item.price_unit ? " / "+item.price_unit : ""}`;
+                          return (
+                            <React.Fragment key={item.id}>
+                              <tr className={`db-tr${open?" db-tr-open":""}`}>
+                                <td className="db-td">
+                                  <div style={{display:"flex",alignItems:"center",gap:10}}>
+                                    {item.image
+                                      ? <img src={item.image} alt="" className="db-thumb" />
+                                      : <div className="db-thumb db-thumb-ph"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
+                                    }
+                                    <div>
+                                      <p className="db-name">{item.title}</p>
+                                      {item.article_number && <p className="db-meta">#{item.article_number}</p>}
+                                      {item.location_city  && <p className="db-meta">📍 {item.location_city}</p>}
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="db-td"><span className="db-pill">{item.type}</span></td>
+                                <td className="db-td">
+                                  <p className="db-name">{item.category}</p>
+                                  {item.subcategory && <p className="db-meta">{item.subcategory}</p>}
+                                </td>
+                                <td className="db-td">
+                                  <p className="db-mono">{price}</p>
+                                  {item.vat_note && <p className="db-meta">{item.vat_note}</p>}
+                                </td>
+                                <td className="db-td">
+                                  {item.quantity
+                                    ? <p className="db-mono">{item.quantity} {item.unit}</p>
+                                    : <span className="db-meta">–</span>
+                                  }
+                                  {item.moq && <p className="db-meta">MOQ: {item.moq} {item.moq_unit}</p>}
+                                </td>
+                                <td className="db-td"><ItemStatusBadge wpStatus={item.wp_status||""} lang={lang} /></td>
+                                <td className="db-td">
+                                  <button className="db-expand-btn" onClick={() => setExpandedItem(open ? null : item.id)}>
+                                    {open ? t(lang,"btn_hide") : t(lang,"btn_show")}
+                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{transform:open?"rotate(180deg)":"none",transition:"transform .2s"}} aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                                  </button>
+                                </td>
+                              </tr>
+                              {open && (
+                                <tr className="db-detail-row">
+                                  <td colSpan={7}>
+                                    <div className="db-detail">
+                                      {(item.short_description || item.description) && (
+                                        <div className="db-detail-block">
+                                          {item.short_description && <><p className="db-detail-lbl">{t(lang,"d_short")}</p><p className="db-detail-prose">{item.short_description}</p></>}
+                                          {item.description && <><p className="db-detail-lbl" style={{marginTop:10}}>{t(lang,"d_description")}</p><p className="db-detail-prose">{item.description}</p></>}
+                                        </div>
+                                      )}
+                                      <div className="db-detail-grid">
+                                        <div className="db-detail-col">
+                                          <p className="db-detail-sec">📦 {t(lang,"th_product")}</p>
+                                          <DR label={t(lang,"d_article")}     value={item.article_number} />
+                                          <DR label={t(lang,"d_brand")}       value={item.brand} />
+                                          <DR label={t(lang,"d_origin")}      value={item.origin} />
+                                          <DR label={t(lang,"d_city")}        value={item.location_city} />
+                                          <DR label={t(lang,"d_condition")}   value={item.condition} />
+                                          <DR label={t(lang,"d_moq")}         value={item.moq ? `${item.moq} ${item.moq_unit}` : null} />
+                                          <DR label={t(lang,"d_service_type")} value={item.service_type} />
+                                          <DR label={t(lang,"d_service_mode")} value={item.service_mode} />
+                                          <DR label={t(lang,"d_availability")} value={item.availability} />
+                                          <DR label={t(lang,"d_billing")}      value={item.billing_model} />
+                                          {item.service_area?.length && <DR label={t(lang,"d_service_area")} value={Array.isArray(item.service_area) ? item.service_area.join(", ") : String(item.service_area)} />}
+                                        </div>
+                                        <div className="db-detail-col">
+                                          <p className="db-detail-sec">💶 {t(lang,"th_offer")}</p>
+                                          <DR label={t(lang,"th_offer")}     value={item.price ? `${item.price} ${item.currency}` : null} />
+                                          <DR label={t(lang,"d_price_unit")} value={item.price_unit} />
+                                          <DR label={t(lang,"d_vat")}        value={item.vat_note} />
+                                          <p className="db-detail-sec" style={{marginTop:14}}>🚚 {t(lang,"d_incoterm")}</p>
+                                          <DR label={t(lang,"d_incoterm")}      value={item.incoterm} />
+                                          <DR label={t(lang,"d_delivery_time")} value={item.delivery_time} />
+                                          <DR label={t(lang,"d_pickup")}        value={item.pickup_location} />
+                                          <DR label={t(lang,"d_transport")}     value={item.transport_option} />
+                                          {item.delivery_countries?.length && <DR label={t(lang,"d_countries")} value={Array.isArray(item.delivery_countries) ? item.delivery_countries.join(", ") : String(item.delivery_countries)} />}
+                                        </div>
+                                        <div className="db-detail-col">
+                                          <p className="db-detail-sec">👁 {t(lang,"d_pub")}</p>
+                                          <DR label={t(lang,"d_pub")}     value={item.publication_status} />
+                                          <DR label={t(lang,"d_contact")} value={item.contact_permission} />
+                                          {item.document_types?.length && <DR label={t(lang,"d_doc_types")} value={Array.isArray(item.document_types) ? item.document_types.join(", ") : String(item.document_types)} />}
+                                          {item.technical_specs && <><p className="db-detail-sec" style={{marginTop:12}}>🔧 {t(lang,"d_specs")}</p><p className="db-detail-prose">{item.technical_specs}</p></>}
+                                          {item.packaging && <><p className="db-detail-sec" style={{marginTop:10}}>📦 {t(lang,"d_packaging")}</p><p className="db-detail-prose">{item.packaging}</p></>}
+                                        </div>
+                                      </div>
+                                      {item.gallery?.length ? (
+                                        <div className="db-detail-block">
+                                          <p className="db-detail-lbl">{t(lang,"d_photos")} ({item.gallery.length})</p>
+                                          <div className="db-gallery">
+                                            {item.gallery.map((u,i) => <a key={i} href={u} target="_blank" rel="noreferrer"><img src={u} alt="" className="db-gallery-img" /></a>)}
+                                          </div>
+                                        </div>
+                                      ) : null}
+                                      {item.documents?.length ? (
+                                        <div className="db-detail-block">
+                                          <p className="db-detail-lbl">{t(lang,"d_documents")} ({item.documents.length})</p>
+                                          <div className="db-docs">
+                                            {item.documents.map(d => (
+                                              <a key={d.id} href={d.url} target="_blank" rel="noreferrer" className="db-doc-link">
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                                {d.name || d.url.split("/").pop()}
+                                              </a>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      ) : null}
+                                    </div>
+                                  </td>
+                                </tr>
+                              )}
+                            </React.Fragment>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )
+              }
+            </Card>
+          )}
+
+          {/* ── REQUESTS (all roles) ── */}
+          <Card
+            title={isAdmin ? t(lang,"main_reqs") : isSupplier ? t(lang,"inbox") : t(lang,"basket")}
+            action={isBuyer ? { label:t(lang,"new_req"), href:`/${lang}/request-basket` } : undefined}
+          >
+            {mainReqs.length === 0
+              ? <Empty txt={t(lang,"no_reqs")} />
+              : (
                 <div className="db-table-wrap">
                   <table className="db-table">
-                    <thead>
-                      <tr>
-                        <Th>{dict.t_product}</Th><Th>{dict.t_supplier}</Th>
-                        <Th>{dict.t_status}</Th><Th right>{dict.t_action}</Th>
-                      </tr>
-                    </thead>
+                    <thead><tr>
+                      <Th>{t(lang,"th_id")}</Th><Th>{t(lang,"th_date")}</Th>
+                      <Th>{t(lang,"th_company")}</Th><Th>{t(lang,"th_country")}</Th>
+                      <Th>{t(lang,"th_offer")}</Th><Th>{t(lang,"th_status")}</Th>
+                      <Th style={{width:100}}>{t(lang,"th_action")}</Th>
+                    </tr></thead>
                     <tbody>
-                      {myItems.map(item => (
-                        <tr key={item.id} className="db-tr">
-                          <td className="db-td">
-                            <p className="td-main">{item.title}</p>
-                            <p className="td-sub">{item.category}</p>
-                          </td>
-                          <td className="db-td">
-                            <p className="td-main">{item.supplier_name || "—"}</p>
-                            <p className="td-sub">{item.supplier_email}</p>
-                          </td>
-                          <td className="db-td">
-                            <span className={`status-pill ${item.wp_status === "publish" ? "pill-green" : "pill-amber"}`}>
-                              {item.wp_status === "publish" ? dict.s_live : dict.s_waiting}
-                            </span>
-                          </td>
-                          <td className="db-td text-right">
-                            <div className="action-row">
-                              <button onClick={() => setSelectedItem(item)} className="btn-outline-sm">{dict.btn_details}</button>
-                              {item.wp_status !== "publish" && (
-                                <button onClick={() => handleItemAction(item.id, "approve")} className="btn-green-sm">{dict.btn_approve}</button>
-                              )}
-                              <button onClick={() => handleItemAction(item.id, "reject")} className="btn-red-sm">{dict.btn_delete}</button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
+                      {mainReqs.map(req => {
+                        const open = expandedReq === req.id;
+                        const offerDisplay = req.offer_price ? `${req.offer_price} ${req.offer_currency||"EUR"}` : "–";
+                        return (
+                          <React.Fragment key={req.id}>
+                            <tr className={`db-tr${open?" db-tr-open":""}`}>
+                              <td className="db-td"><p className="db-mono">#{req.id}</p><p className="db-meta">{req.date}</p></td>
+                              <td className="db-td"><p className="db-name">{req.company||"—"}</p><p className="db-meta">{req.email}</p></td>
+                              <td className="db-td"><span className="db-meta">{req.delivery_country||"—"}</span></td>
+                              <td className="db-td">
+                                <p className="db-mono">{offerDisplay}</p>
+                                {req.customer_decision && (
+                                  <p className={`db-decision ${req.customer_decision==="accepted"?"db-d-ok":"db-d-no"}`}>
+                                    {req.customer_decision==="accepted" ? t(lang,"dec_accepted") : t(lang,"dec_rejected")}
+                                  </p>
+                                )}
+                              </td>
+                              <td className="db-td"><StatusBadge status={req.status} lang={lang} /></td>
+                              <td className="db-td">
+                                <div className="db-action-row">
+                                  <button className="db-expand-btn" onClick={() => setExpandedReq(open ? null : req.id)}>
+                                    {open ? t(lang,"btn_hide") : t(lang,"btn_show")}
+                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{transform:open?"rotate(180deg)":"none",transition:"transform .2s"}} aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                            {open && (
+                              <tr className="db-detail-row">
+                                <td colSpan={7}>
+                                  <div className="db-detail">
+                                    <div className="db-detail-grid">
+                                      <div className="db-detail-col">
+                                        <p className="db-detail-sec">📋 {t(lang,"th_id")}</p>
+                                        <DR label={t(lang,"th_email")}     value={req.email} />
+                                        <DR label={t(lang,"th_country")}   value={req.delivery_country} />
+                                        <DR label="Transport"              value={req.transport_needed} />
+                                        <DR label="Vertraulichkeit"        value={req.confidentiality} />
+                                      </div>
+                                      <div className="db-detail-col">
+                                        <p className="db-detail-sec">💶 {t(lang,"th_offer")}</p>
+                                        <DR label={t(lang,"th_offer")}     value={req.offer_price ? `${req.offer_price} ${req.offer_currency}` : null} />
+                                        <DR label="Lieferzeit"             value={req.offer_delivery_time} />
+                                        <DR label="Bedingungen"            value={req.offer_terms} />
+                                        {req.offer_message && <><p className="db-detail-lbl" style={{marginTop:8}}>Nachricht</p><p className="db-detail-prose">{req.offer_message}</p></>}
+                                      </div>
+                                      {req.customer_decision && (
+                                        <div className="db-detail-col">
+                                          <p className="db-detail-sec">✅ {t(lang,"th_decision")}</p>
+                                          <DR label={t(lang,"th_decision")} value={req.customer_decision === "accepted" ? t(lang,"dec_accepted") : t(lang,"dec_rejected")} />
+                                          {req.customer_decision_message && <p className="db-detail-prose" style={{marginTop:6}}>{req.customer_decision_message}</p>}
+                                        </div>
+                                      )}
+                                    </div>
+                                    {req.items?.length ? (
+                                      <div className="db-detail-block">
+                                        <p className="db-detail-lbl">{t(lang,"req_items")} ({req.items.length})</p>
+                                        <div className="db-table-wrap">
+                                          <table className="db-table db-table-sm">
+                                            <thead><tr>
+                                              <Th>{t(lang,"req_item")}</Th><Th>Menge</Th><Th>Einheit</Th>
+                                              <Th>Lieferort</Th><Th>Termin</Th><Th>Bemerkung</Th>
+                                            </tr></thead>
+                                            <tbody>
+                                              {req.items.map((it,i) => (
+                                                <tr key={i} className="db-tr">
+                                                  <td className="db-td"><p className="db-name">{it.title}</p></td>
+                                                  <td className="db-td"><span className="db-mono">{it.quantity||"–"}</span></td>
+                                                  <td className="db-td"><span className="db-meta">{it.unit||"–"}</span></td>
+                                                  <td className="db-td"><span className="db-meta">{it.delivery_location||"–"}</span></td>
+                                                  <td className="db-td"><span className="db-meta">{it.desired_date||"–"}</span></td>
+                                                  <td className="db-td"><span className="db-meta">{it.customer_note||"–"}</span></td>
+                                                </tr>
+                                              ))}
+                                            </tbody>
+                                          </table>
+                                        </div>
+                                      </div>
+                                    ) : null}
+                                  </div>
+                                </td>
+                              </tr>
+                            )}
+                          </React.Fragment>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
-              )}
-            </Section>
-          )}
+              )
+            }
+          </Card>
 
-          {/* SUPPLIER: MY LISTINGS */}
-          {isSupplier && !isAdmin && (
-            <Section title={dict.my_listings}>
-              {myItems.length === 0 ? <Empty title={dict.no_listings} /> : (
-                <div className="listings-grid">
-                  {myItems.map(item => (
-                    <div key={item.id} className="listing-card" onClick={() => setSelectedItem(item)}>
-                      <div>
-                        <p className="td-main">{item.title}</p>
-                        <p className="td-sub">Ref: {item.internal_id || item.id}</p>
-                      </div>
-                      <span className={`status-pill ${item.wp_status === "publish" ? "pill-green" : "pill-amber"}`}>
-                        {item.wp_status === "publish" ? dict.s_active : dict.s_in_review}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </Section>
-          )}
-
-          {/* REQUESTS */}
-          <Section title={isAdmin ? dict.main_reqs_title : isSupplier ? dict.inbox : dict.basket}
-            action={!isSupplier && !isAdmin ? { label: dict.new_req, href: `/${lang}/request-basket` } : undefined}>
-            {visibleRequests.length === 0 ? <Empty title={dict.no_reqs} desc={dict.no_reqs_desc} /> : (
+          {/* ── SUB-REQUESTS (admin + supplier) ── */}
+          {(isAdmin || isSupplier) && subReqs.length > 0 && (
+            <Card title={t(lang,"sub_reqs")} accentColor="orange">
               <div className="db-table-wrap">
                 <table className="db-table">
-                  <thead>
-                    <tr><Th>{dict.t_id}</Th><Th>{dict.t_date}</Th><Th>{dict.t_company}</Th><Th>{dict.t_country}</Th><Th>{dict.t_status}</Th><Th>{dict.t_action}</Th></tr>
-                  </thead>
+                  <thead><tr>
+                    <Th>{t(lang,"th_id")}</Th><Th>Parent</Th>
+                    <Th>{t(lang,"th_company")}</Th><Th>{t(lang,"th_country")}</Th>
+                    <Th>{t(lang,"th_status")}</Th>
+                    <Th style={{width:100}}>{t(lang,"th_action")}</Th>
+                  </tr></thead>
                   <tbody>
-                    {visibleRequests.map(req => (
+                    {subReqs.map(req => (
                       <tr key={req.id} className="db-tr">
-                        <td className="db-td td-mono">#{req.id}</td>
-                        <td className="db-td td-muted">{req.date || "—"}</td>
-                        <td className="db-td td-main">{req.company || "—"}</td>
-                        <td className="db-td td-muted">{req.delivery_country || "—"}</td>
-                        <td className="db-td"><StatusBadge status={req.status} dict={dict} /></td>
+                        <td className="db-td"><p className="db-mono">#{req.id}</p><p className="db-meta">{req.date}</p></td>
+                        <td className="db-td"><span className="db-parent-badge">#{req.parent_request}</span></td>
+                        <td className="db-td"><p className="db-name">{req.company||"—"}</p></td>
+                        <td className="db-td"><span className="db-meta">{req.delivery_country||"—"}</span></td>
+                        <td className="db-td"><StatusBadge status={req.status} lang={lang} /></td>
                         <td className="db-td">
-                          <Link href={`/${lang}/dashboard/requests?id=${req.id}`} className="btn-outline-sm">{dict.btn_open}</Link>
+                          <Link href={`/${lang}/dashboard/requests?id=${req.id}`} className="db-btn-sm db-btn-outline">{t(lang,"btn_open")}</Link>
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
-            )}
-          </Section>
-
-          {/* SUB-REQUESTS */}
-          {(isAdmin || isSupplier) && subRequests.length > 0 && (
-            <Section title={dict.sub_reqs_title} accentColor="orange">
-              <div className="db-table-wrap">
-                <table className="db-table">
-                  <thead>
-                    <tr><Th>{dict.t_id}</Th><Th>{dict.t_date}</Th><Th>Parent</Th><Th>{dict.t_company}</Th><Th>{dict.t_status}</Th><Th>{dict.t_action}</Th></tr>
-                  </thead>
-                  <tbody>
-                    {subRequests.map(req => (
-                      <tr key={req.id} className="db-tr">
-                        <td className="db-td td-mono">#{req.id}</td>
-                        <td className="db-td td-muted">{req.date || "—"}</td>
-                        <td className="db-td"><span className="parent-badge">#{req.parent_request}</span></td>
-                        <td className="db-td td-main">{req.company || "—"}</td>
-                        <td className="db-td"><StatusBadge status={req.status} dict={dict} /></td>
-                        <td className="db-td">
-                          <Link href={`/${lang}/dashboard/requests?id=${req.id}`} className="btn-outline-sm">{dict.btn_open}</Link>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </Section>
+            </Card>
           )}
 
-          {/* REGISTRATIONS */}
+          {/* ── REGISTRATIONS (admin only) ── */}
           {isAdmin && (
-            <Section title={dict.new_regs_title}>
-              {registrations.length === 0 ? <Empty title={dict.no_regs} desc={dict.no_regs_desc} /> : (
-                <div className="regs-list">
-                  {registrations.map(reg => {
-                    const isOpen = expandedReg === reg.id;
-                    const pkgKey = reg.package || "";
-                    return (
-                      <div key={reg.id} className={`reg-card ${isOpen ? "reg-card-open" : ""}`}>
-                        <div className="reg-head" onClick={() => setExpandedReg(isOpen ? null : reg.id)}>
-                          <div className="reg-head-left">
-                            <span className="td-mono">#{reg.id}</span>
-                            <div>
-                              <p className="reg-company">{reg.company}</p>
-                              <p className="td-sub">{reg.date}</p>
-                            </div>
-                          </div>
-                          <div className="reg-head-right">
-                            {pkgKey && (
-                              <span className={`pkg-badge ${packageColor[pkgKey] || "pkg-gray"}`}>
-                                {packageLabel[pkgKey] || pkgKey}
-                              </span>
-                            )}
-                            <StatusBadge status={reg.status || "nou"} dict={dict} />
-                            {reg.lang && <span className="lang-badge">{reg.lang.toUpperCase()}</span>}
-                            <svg className={`reg-chevron ${isOpen ? "reg-chevron-open" : ""}`} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-                          </div>
-                        </div>
-                        {isOpen && (
-                          <div className="reg-body">
-                            <div className="reg-fields">
-                              <RegField label={dict.t_contact} value={reg.contact_name} />
-                              <RegField label={dict.t_email} value={reg.email} isEmail />
-                              <RegField label={dict.t_phone} value={reg.phone || "—"} />
-                              <RegField label={dict.t_reg_country} value={reg.country || "—"} />
-                              <RegField label={dict.t_vat} value={reg.vat || "—"} isMono />
-                              <RegField label={dict.t_type} value={reg.business_type || "—"} />
-                              <RegField label={dict.t_lang} value={reg.lang?.toUpperCase() || "—"} />
-                              <RegField label={dict.t_package}
-                                value={pkgKey ? (packageLabel[pkgKey] || pkgKey) : "—"}
-                                highlight={!!pkgKey}
-                                highlightColor={pkgKey === "basic" ? "emerald" : pkgKey === "verified" ? "amber" : pkgKey === "active" ? "blue" : undefined}
-                              />
-                            </div>
-                            {reg.message && (
-                              <div className="reg-message">
-                                <p className="field-label-sm">{dict.t_message}</p>
-                                <p className="reg-message-text">{reg.message}</p>
+            <Card title={t(lang,"new_regs")}>
+              {registrations.length === 0
+                ? <Empty txt={t(lang,"no_regs")} />
+                : (
+                  <div className="db-regs">
+                    {registrations.map(reg => {
+                      const open = expandedReg === reg.id;
+                      const pkgKey = reg.package || "";
+                      return (
+                        <div key={reg.id} className={`db-reg-card${open?" db-reg-open":""}`}>
+                          <div className="db-reg-head" onClick={() => setExpandedReg(open ? null : reg.id)}>
+                            <div style={{display:"flex",alignItems:"center",gap:14}}>
+                              <span className="db-mono">#{reg.id}</span>
+                              <div>
+                                <p className="db-name">{reg.company}</p>
+                                <p className="db-meta">{reg.date}</p>
                               </div>
-                            )}
-                            <div className="reg-actions">
-                              <select id={`role-${reg.id}`}
-                                defaultValue={reg.business_type === "supplier" ? "tb_supplier" : "tb_buyer"}
-                                className="reg-role-select">
-                                <option value="tb_buyer">Buyer</option>
-                                <option value="tb_supplier">Supplier</option>
-                                <option value="tb_partner">Partner</option>
-                              </select>
-                              <button disabled={reg.status === "approved"}
-                                onClick={() => {
-                                  const s = document.getElementById(`role-${reg.id}`) as HTMLSelectElement;
-                                  handleRegistrationAction(reg.id, "approve", s.value);
-                                }}
-                                className="btn-approve-reg">✓ {dict.btn_approve}</button>
-                              <button disabled={reg.status === "approved"}
-                                onClick={() => handleRegistrationAction(reg.id, "reject")}
-                                className="btn-reject-reg">✕ {dict.btn_reject}</button>
+                            </div>
+                            <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
+                              {pkgKey && <PkgBadge pkg={pkgKey} lang={lang} />}
+                              <StatusBadge status={reg.status||"nou"} lang={lang} />
+                              {reg.lang && <span className="db-lang-badge">{reg.lang.toUpperCase()}</span>}
+                              <svg className={`db-chevron${open?" db-chevron-open":""}`} width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
                             </div>
                           </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </Section>
+                          {open && (
+                            <div className="db-reg-body">
+                              <div className="db-reg-fields">
+                                {([
+                                  [t(lang,"th_contact"), reg.contact_name],
+                                  [t(lang,"th_email"),   reg.email],
+                                  [t(lang,"th_phone"),   reg.phone||"—"],
+                                  [t(lang,"th_country"), reg.country||"—"],
+                                  [t(lang,"th_vat"),     reg.vat||"—"],
+                                  [t(lang,"th_type"),    reg.business_type||"—"],
+                                  [t(lang,"th_lang"),    reg.lang?.toUpperCase()||"—"],
+                                  [t(lang,"th_package"), pkgKey ? t(lang,`pkg_${pkgKey}`) || pkgKey : "—"],
+                                ] as [string,string][]).map(([label,value]) => (
+                                  <div key={label} className="db-reg-field">
+                                    <span className="db-reg-label">{label}</span>
+                                    <span className="db-reg-value">{value}</span>
+                                  </div>
+                                ))}
+                              </div>
+                              {reg.message && (
+                                <div className="db-reg-msg">
+                                  <p className="db-reg-label">{t(lang,"th_message")}</p>
+                                  <p className="db-reg-msg-text">{reg.message}</p>
+                                </div>
+                              )}
+                              <div className="db-reg-actions">
+                                <select id={`role-${reg.id}`}
+                                  defaultValue={reg.business_type === "supplier" ? "tb_supplier" : "tb_buyer"}
+                                  className="db-role-select">
+                                  <option value="tb_buyer">Buyer</option>
+                                  <option value="tb_supplier">Supplier</option>
+                                  <option value="tb_partner">Partner</option>
+                                </select>
+                                <button
+                                  disabled={reg.status === "approved"}
+                                  onClick={() => {
+                                    const s = document.getElementById(`role-${reg.id}`) as HTMLSelectElement;
+                                    handleRegAction(reg.id, "approve", s.value);
+                                  }}
+                                  className="db-btn-sm db-btn-green">✓ {t(lang,"btn_approve")}</button>
+                                <button
+                                  disabled={reg.status === "approved"}
+                                  onClick={() => handleRegAction(reg.id, "reject")}
+                                  className="db-btn-sm db-btn-red">✕ {t(lang,"btn_reject")}</button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )
+              }
+            </Card>
           )}
-
-          {/* LOGOUT */}
-          <button onClick={() => { localStorage.clear(); window.location.href = `/${lang}/login`; }} className="btn-logout">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-            {dict.logout}
-          </button>
 
         </div>
       </main>
@@ -631,400 +914,236 @@ export default function DashboardPage() {
   );
 }
 
-function Section({ title, badge, badgeColor, accentColor, action, children }: {
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
+function Card({ title, badge, badgeColor, accentColor, action, children }: {
   title: string; badge?: string; badgeColor?: string; accentColor?: string;
   action?: { label: string; href: string }; children: React.ReactNode;
 }) {
   return (
-    <div className="db-section">
-      <div className="section-header">
-        <div className="flex items-center gap-3">
-          <div className={`section-line ${accentColor === "orange" ? "line-orange" : "line-teal"}`} />
-          <h2 className="section-title">
+    <div className="db-card">
+      <div className="db-card-hdr">
+        <div style={{display:"flex",alignItems:"center",gap:12}}>
+          <div className={`db-card-line${accentColor==="orange"?" db-line-orange":""}`} />
+          <h2 className="db-card-title">
             {title}
-            {badge && <span className={`section-badge ${badgeColor === "orange" ? "badge-orange" : "badge-teal"}`}>{badge}</span>}
+            {badge && <span className={`db-card-badge${badgeColor==="orange"?" db-badge-orange":""}`}>{badge}</span>}
           </h2>
         </div>
-        {action && <Link href={action.href} className="btn-teal-sm">{action.label}</Link>}
+        {action && <Link href={action.href} className="db-btn-sm db-btn-teal">{action.label}</Link>}
       </div>
       {children}
     </div>
   );
 }
 
-function NavCard({ title, desc, href, icon, color }: { title: string; desc: string; href: string; icon: React.ReactNode; color: string }) {
-  const colorMap: Record<string, string> = {
-    teal:   "nav-card-teal",
-    blue:   "nav-card-blue",
-    violet: "nav-card-violet",
-    orange: "nav-card-orange",
-  };
+function NavCard({ href, icon, title, desc, color }: { href:string; icon:string; title:string; desc:string; color:string }) {
+  const c: Record<string,string> = { teal:"db-nav-teal", blue:"db-nav-blue", violet:"db-nav-violet", orange:"db-nav-orange" };
   return (
-    <Link href={href} className={`nav-card ${colorMap[color] || "nav-card-teal"}`}>
-      <div className="nav-icon">{icon}</div>
-      <h3 className="nav-title">{title}</h3>
-      <p className="nav-desc">{desc}</p>
+    <Link href={href} className={`db-nav-card ${c[color]||"db-nav-teal"}`}>
+      <span className="db-nav-icon">{icon}</span>
+      <p className="db-nav-title">{title}</p>
+      <p className="db-nav-desc">{desc}</p>
     </Link>
   );
 }
 
-function Th({ children, right }: { children: React.ReactNode; right?: boolean }) {
-  return <th className={`db-th ${right ? "text-right" : ""}`}>{children}</th>;
+function Th({ children, right, style }: { children:React.ReactNode; right?:boolean; style?: React.CSSProperties }) {
+  return <th className="db-th" style={{textAlign:right?"right":"left",...style}}>{children}</th>;
 }
 
-function Empty({ title, desc }: { title: string; desc?: string }) {
+function Empty({ txt, action }: { txt:string; action?:{label:string;href:string} }) {
   return (
     <div className="db-empty">
-      <div className="empty-icon">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-      </div>
-      <p className="empty-title">{title}</p>
-      {desc && <p className="empty-desc">{desc}</p>}
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" style={{color:"#1e2d47"}}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <p style={{fontSize:14,color:"#475569",margin:0}}>{txt}</p>
+      {action && <Link href={action.href} className="db-btn-sm db-btn-teal">{action.label}</Link>}
     </div>
   );
 }
 
-function RegField({ label, value, isEmail, isMono, highlight, highlightColor }: {
-  label: string; value: string; isEmail?: boolean; isMono?: boolean;
-  highlight?: boolean; highlightColor?: string;
-}) {
-  const colorMap: Record<string, string> = {
-    emerald: "reg-field-emerald", amber: "reg-field-amber", blue: "reg-field-blue",
-  };
-  const cls = highlight && highlightColor ? colorMap[highlightColor] || "" : "";
-  return (
-    <div className={`reg-field ${cls}`}>
-      <span className="field-label-sm">{label}</span>
-      <span className={`reg-field-val ${isMono ? "font-mono text-xs" : ""} ${isEmail ? "reg-email" : ""}`}>{value}</span>
-    </div>
-  );
-}
+// ─── CSS ──────────────────────────────────────────────────────────────────────
+const css = `
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&family=DM+Mono:wght@400;500&display=swap');
 
-// ─── STYLES ───────────────────────────────────────────────────────────────────
+  .db-page { font-family:'DM Sans',sans-serif; background:#0e1420; min-height:100vh; color:#cbd5e1; padding-bottom:80px; }
+  .db-loading { font-family:'DM Sans',sans-serif; background:#0e1420; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; }
+  .db-spinner { width:34px; height:34px; border:3px solid rgba(13,148,136,.15); border-top-color:#0d9488; border-radius:50%; animation:db-spin .7s linear infinite; }
+  .db-loading-txt { font-family:'DM Mono',monospace; font-size:10px; font-weight:500; letter-spacing:.18em; text-transform:uppercase; color:#475569; }
+  @keyframes db-spin { to { transform:rotate(360deg); } }
 
-const globalStyles = `
-  .db-page {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: #f1f5f9;
-    min-height: 100vh;
-    color: #1e293b;
-    padding-bottom: 80px;
-  }
+  /* Header */
+  .db-hdr { position:relative; overflow:hidden; padding:52px 32px 44px; border-bottom:1px solid #1e2d47; }
+  .db-hdr-grid { position:absolute; inset:0; background-image:linear-gradient(rgba(99,179,237,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(99,179,237,.04) 1px,transparent 1px); background-size:48px 48px; mask-image:radial-gradient(ellipse 90% 80% at 50% 0%,black 30%,transparent 100%); }
+  .db-hdr-glow { position:absolute; top:-100px; left:50%; transform:translateX(-50%); width:800px; height:340px; background:radial-gradient(ellipse,rgba(13,148,136,.1) 0%,rgba(59,130,246,.04) 45%,transparent 70%); pointer-events:none; }
+  .db-hdr-inner { position:relative; max-width:1200px; margin:0 auto; display:flex; align-items:flex-end; justify-content:space-between; gap:24px; flex-wrap:wrap; }
+  .db-hdr-chip { display:inline-flex; align-items:center; gap:7px; font-family:'DM Mono',monospace; font-size:10px; font-weight:500; letter-spacing:.18em; text-transform:uppercase; color:#2dd4bf; background:rgba(13,148,136,.08); border:1px solid rgba(13,148,136,.2); border-radius:100px; padding:4px 12px; margin-bottom:10px; }
+  .db-hdr-title { font-size:clamp(20px,3.5vw,30px); font-weight:800; letter-spacing:-.025em; color:#f1f5f9; margin:0 0 5px; }
+  .db-hdr-sub { font-size:13px; color:#475569; margin:0 0 8px; }
+  .db-hdr-meta { display:flex; align-items:center; gap:10px; font-size:13px; color:#475569; }
+  .db-hdr-meta strong { color:#94a3b8; }
+  .db-dot { width:3px; height:3px; border-radius:50%; background:#2a3f60; }
+  .db-hdr-actions { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .db-new-btn { display:inline-flex; align-items:center; gap:7px; background:#0d9488; color:#fff; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:700; padding:10px 18px; border-radius:9px; text-decoration:none; transition:background .17s,transform .13s; }
+  .db-new-btn:hover { background:#0b7c72; transform:translateY(-1px); }
+  .db-logout-btn { display:inline-flex; align-items:center; gap:7px; background:transparent; border:1px solid #1e2d47; border-radius:9px; padding:10px 16px; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600; color:#475569; cursor:pointer; transition:border-color .15s,color .15s; }
+  .db-logout-btn:hover { border-color:#ef4444; color:#f87171; }
 
-  .db-loading {
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 16px; color: #64748b; font-size: 14px; min-height: 100vh;
-  }
+  /* Body */
+  .db-body { max-width:1200px; margin:0 auto; padding:28px 24px 0; display:flex; flex-direction:column; gap:18px; }
 
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .db-spinner {
-    width: 30px; height: 30px; border: 2px solid #e2e8f0;
-    border-top-color: #0f766e; border-radius: 50%;
-    animation: spin .7s linear infinite;
-  }
+  /* Stats */
+  .db-stats { display:grid; grid-template-columns:repeat(6,1fr); gap:11px; }
+  @media(max-width:900px){.db-stats{grid-template-columns:repeat(3,1fr);}}
+  @media(max-width:540px){.db-stats{grid-template-columns:repeat(2,1fr);}}
+  .db-stat { position:relative; overflow:hidden; background:#141c2e; border:1px solid #1e2d47; border-radius:14px; padding:16px 14px; transition:transform .14s; }
+  .db-stat:hover { transform:translateY(-2px); }
+  .db-stat-glow { position:absolute; top:-28px; right:-28px; width:80px; height:80px; background:radial-gradient(circle,color-mix(in srgb,var(--sc) 18%,transparent),transparent 70%); pointer-events:none; }
+  .db-stat-val { font-family:'DM Mono',monospace; font-size:24px; font-weight:500; color:var(--sc); margin:0 0 3px; line-height:1; }
+  .db-stat-lbl { font-size:10px; font-weight:700; color:#475569; letter-spacing:.06em; text-transform:uppercase; margin:0; }
 
-  /* ── HERO ── */
-  .db-hero {
-    background: linear-gradient(135deg, #0f766e 0%, #0d9488 50%, #0891b2 100%);
-    padding: 40px 32px 36px;
-  }
-  .db-hero-inner {
-    max-width: 1200px; margin: 0 auto;
-    display: flex; align-items: center; justify-content: space-between; gap: 24px;
-    flex-wrap: wrap;
-  }
-  .db-hero-chip {
-    display: inline-block; font-size: 10px; font-weight: 700;
-    letter-spacing: .14em; text-transform: uppercase;
-    color: rgba(255,255,255,.8); background: rgba(255,255,255,.15);
-    border: 1px solid rgba(255,255,255,.25); border-radius: 100px;
-    padding: 3px 12px; margin-bottom: 12px;
-  }
-  .db-hero-title {
-    font-size: clamp(22px, 3.5vw, 34px); font-weight: 800;
-    color: #fff; letter-spacing: -.02em; margin: 0 0 8px;
-  }
-  .db-hero-name { color: #ccfbf1; }
-  .db-hero-meta { display: flex; align-items: center; gap: 10px; font-size: 13px; color: rgba(255,255,255,.75); }
-  .db-hero-meta strong { color: #fff; }
-  .db-dot { width: 3px; height: 3px; border-radius: 50%; background: rgba(255,255,255,.4); }
+  /* Nav cards */
+  .db-nav-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+  @media(max-width:640px){.db-nav-grid{grid-template-columns:1fr;}}
+  .db-nav-card { background:#141c2e; border:1px solid #1e2d47; border-radius:14px; padding:20px; text-decoration:none; display:flex; flex-direction:column; gap:8px; transition:border-color .17s,transform .14s,box-shadow .17s; }
+  .db-nav-card:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,.25); }
+  .db-nav-teal:hover   { border-color:#0d9488; }
+  .db-nav-blue:hover   { border-color:#3b82f6; }
+  .db-nav-violet:hover { border-color:#7c3aed; }
+  .db-nav-orange:hover { border-color:#f97316; }
+  .db-nav-icon { font-size:22px; }
+  .db-nav-title { font-size:14px; font-weight:700; color:#e2e8f0; margin:0; }
+  .db-nav-desc  { font-size:12px; color:#475569; margin:0; line-height:1.5; }
 
-  .db-hero-stats { display: flex; gap: 12px; flex-wrap: wrap; }
-  .hero-stat {
-    background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.2);
-    border-radius: 14px; padding: 14px 20px; text-align: center; min-width: 80px;
-  }
-  .hero-stat-num { font-size: 26px; font-weight: 800; color: #fff; line-height: 1; }
-  .hero-stat-label { font-size: 11px; color: rgba(255,255,255,.7); margin-top: 4px; font-weight: 600; }
+  /* Cards */
+  .db-card { background:#141c2e; border:1px solid #1e2d47; border-radius:16px; overflow:hidden; box-shadow:0 2px 14px rgba(0,0,0,.2); }
+  .db-card-hdr { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:18px 24px; border-bottom:1px solid #1e2d47; background:rgba(255,255,255,.015); }
+  .db-card-line { width:3px; height:17px; border-radius:2px; background:#0d9488; flex-shrink:0; }
+  .db-line-orange { background:#f97316; }
+  .db-card-title { font-size:14px; font-weight:700; color:#e2e8f0; margin:0; }
+  .db-card-badge { font-size:9px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; border-radius:100px; padding:2px 8px; margin-left:8px; vertical-align:middle; background:rgba(13,148,136,.1); color:#2dd4bf; border:1px solid rgba(13,148,136,.2); }
+  .db-badge-orange { background:rgba(249,115,22,.1); color:#fb923c; border-color:rgba(249,115,22,.2); }
 
-  /* ── CONTENT ── */
-  .db-content {
-    max-width: 1200px; margin: 0 auto;
-    padding: 28px 24px 0;
-    display: flex; flex-direction: column; gap: 20px;
-  }
+  /* Table */
+  .db-table-wrap { overflow-x:auto; }
+  .db-table { width:100%; border-collapse:collapse; font-size:13px; }
+  .db-table.db-table-sm .db-th,.db-table.db-table-sm .db-td { padding:9px 14px; }
+  .db-th { text-align:left; padding:11px 18px; font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#475569; border-bottom:1px solid #1e2d47; background:rgba(255,255,255,.01); white-space:nowrap; }
+  .db-tr { border-bottom:1px solid #1a2638; transition:background .12s; }
+  .db-tr:last-child { border-bottom:none; }
+  .db-tr:hover:not(.db-detail-row) { background:rgba(255,255,255,.02); }
+  .db-tr-open { background:rgba(13,148,136,.04) !important; border-bottom:none !important; }
+  .db-td { padding:12px 18px; vertical-align:middle; }
+  .db-name  { font-size:13px; font-weight:600; color:#e2e8f0; margin:0 0 2px; }
+  .db-meta  { font-size:11px; color:#475569; margin:0; }
+  .db-mono  { font-family:'DM Mono',monospace; font-size:13px; font-weight:500; color:#e2e8f0; margin:0 0 2px; }
+  .db-pill  { font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; background:rgba(255,255,255,.05); color:#64748b; border:1px solid #1e2d47; border-radius:6px; padding:3px 8px; white-space:nowrap; }
+  .db-decision { font-size:11px; font-weight:700; margin:2px 0 0; }
+  .db-d-ok { color:#4ade80; }
+  .db-d-no { color:#f87171; }
+  .db-parent-badge { font-family:'DM Mono',monospace; font-size:11px; background:rgba(168,85,247,.1); color:#c084fc; border:1px solid rgba(168,85,247,.2); border-radius:6px; padding:2px 8px; }
+  .db-lang-badge { font-family:'DM Mono',monospace; font-size:9px; background:#111827; border:1px solid #1e2d47; border-radius:4px; padding:2px 6px; color:#64748b; }
 
-  /* ── NAV CARDS ── */
-  .nav-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
-  @media (max-width: 680px) { .nav-grid { grid-template-columns: 1fr; } }
+  /* Badges */
+  .db-badge { display:inline-flex; align-items:center; font-size:10px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; border-radius:6px; padding:3px 9px; white-space:nowrap; }
+  .db-b-green  { background:rgba(34,197,94,.1);   color:#4ade80; border:1px solid rgba(34,197,94,.2); }
+  .db-b-amber  { background:rgba(245,158,11,.1);  color:#fcd34d; border:1px solid rgba(245,158,11,.2); }
+  .db-b-red    { background:rgba(239,68,68,.1);   color:#f87171; border:1px solid rgba(239,68,68,.2); }
+  .db-b-gray   { background:rgba(100,116,139,.1); color:#94a3b8; border:1px solid rgba(100,116,139,.2); }
+  .db-b-teal   { background:rgba(13,148,136,.1);  color:#2dd4bf; border:1px solid rgba(13,148,136,.2); }
+  .db-b-blue   { background:rgba(59,130,246,.1);  color:#93c5fd; border:1px solid rgba(59,130,246,.2); }
+  .db-b-cyan   { background:rgba(6,182,212,.1);   color:#67e8f9; border:1px solid rgba(6,182,212,.2); }
+  .db-b-purple { background:rgba(168,85,247,.1);  color:#c084fc; border:1px solid rgba(168,85,247,.2); }
 
-  .nav-card {
-    background: #fff; border: 1px solid #e2e8f0; border-radius: 16px;
-    padding: 20px; display: flex; flex-direction: column; gap: 10px;
-    text-decoration: none; transition: border-color .18s, transform .15s, box-shadow .18s;
-    box-shadow: 0 1px 3px rgba(0,0,0,.06);
-  }
-  .nav-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.1); }
-  .nav-card-teal:hover   { border-color: #0d9488; }
-  .nav-card-blue:hover   { border-color: #3b82f6; }
-  .nav-card-violet:hover { border-color: #7c3aed; }
-  .nav-card-orange:hover { border-color: #f97316; }
+  /* Buttons */
+  .db-action-row { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+  .db-btn-sm { border-radius:7px; padding:6px 12px; font-family:'DM Sans',sans-serif; font-size:11px; font-weight:700; cursor:pointer; border:1px solid; white-space:nowrap; transition:background .14s; text-decoration:none; display:inline-block; }
+  .db-btn-outline { background:transparent; border-color:#1e2d47; color:#64748b; }
+  .db-btn-outline:hover { border-color:#2a3f60; color:#94a3b8; }
+  .db-btn-teal    { background:rgba(13,148,136,.1); border-color:rgba(13,148,136,.2); color:#2dd4bf; }
+  .db-btn-teal:hover { background:rgba(13,148,136,.18); }
+  .db-btn-green   { background:rgba(34,197,94,.1); border-color:rgba(34,197,94,.2); color:#4ade80; }
+  .db-btn-green:hover { background:rgba(34,197,94,.18); }
+  .db-btn-green:disabled { opacity:.4; cursor:not-allowed; }
+  .db-btn-red     { background:rgba(239,68,68,.1); border-color:rgba(239,68,68,.2); color:#f87171; }
+  .db-btn-red:hover { background:rgba(239,68,68,.18); }
+  .db-btn-red:disabled { opacity:.4; cursor:not-allowed; }
 
-  .nav-icon {
-    width: 40px; height: 40px; border-radius: 10px;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .nav-card-teal   .nav-icon { background: #f0fdfa; color: #0f766e; }
-  .nav-card-blue   .nav-icon { background: #eff6ff; color: #2563eb; }
-  .nav-card-violet .nav-icon { background: #f5f3ff; color: #6d28d9; }
-  .nav-card-orange .nav-icon { background: #fff7ed; color: #c2410c; }
+  /* Expand button */
+  .db-expand-btn { display:inline-flex; align-items:center; gap:5px; background:transparent; border:1px solid #1e2d47; border-radius:7px; padding:6px 11px; font-family:'DM Sans',sans-serif; font-size:11px; font-weight:600; color:#64748b; cursor:pointer; transition:border-color .14s,color .14s; white-space:nowrap; }
+  .db-expand-btn:hover { border-color:#2a3f60; color:#94a3b8; }
 
-  .nav-title { font-size: 14px; font-weight: 700; color: #0f172a; margin: 0; }
-  .nav-desc  { font-size: 12px; color: #64748b; margin: 0; line-height: 1.5; }
+  /* Thumbnail */
+  .db-thumb { width:40px; height:40px; border-radius:8px; object-fit:cover; flex-shrink:0; border:1px solid #1e2d47; }
+  .db-thumb-ph { background:#111827; display:flex; align-items:center; justify-content:center; color:#2a3f60; }
 
-  /* ── SECTIONS ── */
-  .db-section {
-    background: #fff; border: 1px solid #e2e8f0; border-radius: 16px;
-    overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.05);
-  }
-  .section-header {
-    display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    padding: 18px 24px; border-bottom: 1px solid #f1f5f9;
-    background: #fafafa;
-  }
-  .section-line { width: 3px; height: 18px; border-radius: 2px; background: #0d9488; flex-shrink: 0; }
-  .line-orange { background: #f97316; }
-  .section-title { font-size: 15px; font-weight: 700; color: #0f172a; margin: 0; }
-  .section-badge {
-    font-size: 9px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
-    border-radius: 100px; padding: 2px 8px; margin-left: 8px; vertical-align: middle;
-  }
-  .badge-teal   { background: #f0fdfa; color: #0f766e; border: 1px solid #99f6e4; }
-  .badge-orange { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
+  /* Detail row */
+  .db-detail-row { background:#111827 !important; border-bottom:1px solid #1e2d47 !important; }
+  .db-detail-row td { padding:0 !important; }
+  .db-detail { padding:22px 20px; border-top:1px solid #1e2d47; }
+  .db-detail-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-bottom:18px; }
+  @media(max-width:720px){.db-detail-grid{grid-template-columns:1fr;}}
+  .db-detail-col { display:flex; flex-direction:column; gap:0; }
+  .db-detail-sec { font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#0d9488; margin:0 0 9px; }
+  .db-detail-block { margin-bottom:14px; }
+  .db-detail-lbl { font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#64748b; margin:0 0 8px; }
+  .db-detail-prose { font-size:12.5px; color:#94a3b8; line-height:1.6; margin:0; white-space:pre-wrap; }
+  .db-dr { display:flex; align-items:flex-start; gap:8px; padding:5px 0; border-bottom:1px solid rgba(255,255,255,.03); }
+  .db-dl { font-size:11px; font-weight:600; color:#475569; min-width:120px; flex-shrink:0; }
+  .db-dv { font-size:12.5px; color:#cbd5e1; }
+  .db-gallery { display:flex; flex-wrap:wrap; gap:7px; }
+  .db-gallery-img { width:66px; height:66px; border-radius:7px; object-fit:cover; border:1px solid #1e2d47; transition:opacity .14s; }
+  .db-gallery-img:hover { opacity:.8; }
+  .db-docs { display:flex; flex-wrap:wrap; gap:7px; }
+  .db-doc-link { display:inline-flex; align-items:center; gap:5px; background:#0e1420; border:1px solid #1e2d47; border-radius:7px; padding:6px 11px; font-size:12px; font-weight:600; color:#64748b; text-decoration:none; transition:border-color .14s,color .14s; }
+  .db-doc-link:hover { border-color:#2a3f60; color:#94a3b8; }
 
-  /* ── TABLE ── */
-  .db-table-wrap { overflow-x: auto; }
-  .db-table { width: 100%; min-width: 640px; border-collapse: collapse; }
-  .db-th {
-    padding: 10px 16px; font-size: 10px; font-weight: 700;
-    letter-spacing: .08em; text-transform: uppercase;
-    color: #94a3b8; background: #f8fafc; border-bottom: 1px solid #f1f5f9;
-  }
-  .db-tr { transition: background .1s; }
-  .db-tr:hover { background: #f8fafc; }
-  .db-tr + .db-tr { border-top: 1px solid #f1f5f9; }
-  .db-td { padding: 12px 16px; vertical-align: middle; }
-  .td-main  { font-size: 13px; font-weight: 600; color: #0f172a; }
-  .td-sub   { font-size: 11px; color: #94a3b8; margin-top: 2px; }
-  .td-muted { font-size: 13px; color: #64748b; }
-  .td-mono  { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; color: #64748b; }
+  /* Registrations */
+  .db-regs { display:flex; flex-direction:column; }
+  .db-reg-card { border-bottom:1px solid #1e2d47; }
+  .db-reg-card:last-child { border-bottom:none; }
+  .db-reg-open { background:#111827; }
+  .db-reg-head { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 20px; cursor:pointer; transition:background .12s; }
+  .db-reg-head:hover { background:rgba(255,255,255,.02); }
+  .db-reg-body { border-top:1px solid #1e2d47; }
+  .db-reg-fields { display:grid; grid-template-columns:repeat(4,1fr); gap:0; }
+  @media(max-width:760px){.db-reg-fields{grid-template-columns:repeat(2,1fr);}}
+  @media(max-width:440px){.db-reg-fields{grid-template-columns:1fr;}}
+  .db-reg-field { padding:12px 18px; border-right:1px solid #1e2d47; border-bottom:1px solid #1e2d47; }
+  .db-reg-field:nth-child(4n) { border-right:none; }
+  .db-reg-label { font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#475569; display:block; margin-bottom:3px; }
+  .db-reg-value { font-size:13px; font-weight:600; color:#e2e8f0; display:block; word-break:break-all; }
+  .db-reg-msg { padding:12px 18px; border-bottom:1px solid #1e2d47; background:rgba(255,255,255,.01); }
+  .db-reg-msg-text { font-size:13px; color:#94a3b8; line-height:1.6; margin-top:4px; }
+  .db-reg-actions { display:flex; align-items:center; gap:9px; padding:13px 18px; flex-wrap:wrap; }
+  .db-role-select { background:#0e1420; border:1px solid #1e2d47; border-radius:7px; padding:6px 12px; font-family:'DM Sans',sans-serif; font-size:12px; font-weight:600; color:#e2e8f0; outline:none; cursor:pointer; }
+  .db-chevron { color:#2a3f60; transition:transform .2s; flex-shrink:0; }
+  .db-chevron-open { transform:rotate(180deg); color:#0d9488; }
 
-  /* ── STATUS PILLS ── */
-  .status-pill {
-    display: inline-flex; align-items: center; border-radius: 100px; border: 1px solid;
-    padding: 2px 10px; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
-  }
-  .pill-green { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
-  .pill-amber { background: #fffbeb; color: #b45309; border-color: #fde68a; }
+  /* Empty */
+  .db-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:48px 24px; gap:12px; text-align:center; }
 
-  /* ── BUTTONS ── */
-  .action-row { display: flex; justify-content: flex-end; gap: 6px; flex-wrap: wrap; }
-
-  .btn-outline-sm {
-    background: #fff; color: #475569; border: 1px solid #e2e8f0; border-radius: 8px;
-    padding: 6px 12px; font-size: 11px; font-weight: 700; cursor: pointer;
-    text-decoration: none; display: inline-block; transition: all .15s; white-space: nowrap;
-  }
-  .btn-outline-sm:hover { background: #f8fafc; border-color: #cbd5e1; color: #0f172a; }
-
-  .btn-teal-sm {
-    background: #f0fdfa; color: #0f766e; border: 1px solid #99f6e4; border-radius: 8px;
-    padding: 7px 14px; font-size: 12px; font-weight: 700; cursor: pointer;
-    text-decoration: none; display: inline-block; transition: background .15s; white-space: nowrap;
-  }
-  .btn-teal-sm:hover { background: #ccfbf1; }
-
-  .btn-green-sm {
-    background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; border-radius: 8px;
-    padding: 6px 12px; font-size: 11px; font-weight: 700; cursor: pointer; transition: background .15s;
-  }
-  .btn-green-sm:hover { background: #dcfce7; }
-
-  .btn-red-sm {
-    background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; border-radius: 8px;
-    padding: 6px 12px; font-size: 11px; font-weight: 700; cursor: pointer; transition: background .15s;
-  }
-  .btn-red-sm:hover { background: #fee2e2; }
-
-  .btn-logout {
-    display: flex; align-items: center; gap: 8px;
-    background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;
-    padding: 10px 18px; font-size: 13px; font-weight: 600; color: #64748b;
-    cursor: pointer; transition: all .15s; margin-top: 4px; width: fit-content;
-  }
-  .btn-logout:hover { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
-
-  /* ── LISTINGS ── */
-  .listings-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 16px; }
-  @media (max-width: 600px) { .listings-grid { grid-template-columns: 1fr; } }
-  .listing-card {
-    display: flex; justify-content: space-between; align-items: center;
-    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;
-    padding: 14px 16px; cursor: pointer; transition: border-color .15s, box-shadow .15s;
-  }
-  .listing-card:hover { border-color: #0d9488; box-shadow: 0 2px 8px rgba(13,148,136,.1); }
-
-  /* ── EMPTY ── */
-  .db-empty { padding: 40px 24px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; }
-  .empty-icon { width: 44px; height: 44px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #94a3b8; }
-  .empty-title { font-size: 14px; font-weight: 600; color: #64748b; }
-  .empty-desc { font-size: 12px; color: #94a3b8; }
-
-  /* ── PARENT BADGE ── */
-  .parent-badge {
-    font-family: monospace; font-size: 11px;
-    background: #f5f3ff; color: #6d28d9; border: 1px solid #ddd6fe;
-    border-radius: 6px; padding: 2px 8px;
-  }
-
-  /* ── REGISTRATIONS ── */
-  .regs-list { display: flex; flex-direction: column; }
-  .reg-card { border-bottom: 1px solid #f1f5f9; transition: background .1s; }
-  .reg-card:last-child { border-bottom: none; }
-  .reg-card-open { background: #fafffe; }
-
-  .reg-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 20px; cursor: pointer; }
-  .reg-head:hover { background: #f8fafc; }
-  .reg-head-left { display: flex; align-items: center; gap: 14px; }
-  .reg-head-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .reg-company { font-size: 14px; font-weight: 700; color: #0f172a; }
-
-  .pkg-badge { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; border-radius: 100px; border: 1px solid; padding: 2px 10px; }
-  .pkg-emerald { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
-  .pkg-amber   { background: #fffbeb; color: #b45309; border-color: #fde68a; }
-  .pkg-blue    { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
-  .pkg-gray    { background: #f8fafc; color: #64748b; border-color: #e2e8f0; }
-
-  .lang-badge { font-family: monospace; font-size: 9px; font-weight: 600; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 4px; padding: 2px 6px; color: #64748b; }
-
-  .reg-chevron { color: #cbd5e1; transition: transform .2s; flex-shrink: 0; }
-  .reg-chevron-open { transform: rotate(180deg); color: #0d9488; }
-
-  .reg-body { border-top: 1px solid #f1f5f9; }
-
-  .reg-fields { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; }
-  @media (max-width: 760px) { .reg-fields { grid-template-columns: repeat(2, 1fr); } }
-  @media (max-width: 460px) { .reg-fields { grid-template-columns: 1fr; } }
-
-  .reg-field { padding: 12px 20px; border-right: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; }
-  .reg-field:nth-child(4n) { border-right: none; }
-  .reg-field-val { font-size: 13px; font-weight: 600; color: #1e293b; display: block; margin-top: 3px; word-break: break-all; }
-  .reg-email { color: #0f766e; font-size: 12px; }
-  .field-label-sm { font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #94a3b8; }
-
-  .reg-field-emerald { background: #f0fdf4; }
-  .reg-field-emerald .reg-field-val { color: #15803d; }
-  .reg-field-amber { background: #fffbeb; }
-  .reg-field-amber .reg-field-val { color: #b45309; }
-  .reg-field-blue { background: #eff6ff; }
-  .reg-field-blue .reg-field-val { color: #1d4ed8; }
-
-  .reg-message { padding: 14px 20px; border-bottom: 1px solid #f1f5f9; background: #fafafa; }
-  .reg-message-text { font-size: 13px; color: #475569; line-height: 1.6; margin-top: 4px; }
-
-  .reg-actions { display: flex; align-items: center; gap: 10px; padding: 14px 20px; flex-wrap: wrap; }
-
-  .reg-role-select {
-    background: #fff; border: 1px solid #e2e8f0; border-radius: 8px;
-    padding: 7px 12px; font-size: 12px; font-weight: 600; color: #0f172a; outline: none; cursor: pointer;
-  }
-
-  .btn-approve-reg {
-    background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; border-radius: 8px;
-    padding: 7px 16px; font-size: 12px; font-weight: 700; cursor: pointer; transition: background .15s;
-  }
-  .btn-approve-reg:hover:not(:disabled) { background: #dcfce7; }
-  .btn-approve-reg:disabled { opacity: .4; cursor: not-allowed; }
-
-  .btn-reject-reg {
-    background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; border-radius: 8px;
-    padding: 7px 16px; font-size: 12px; font-weight: 700; cursor: pointer; transition: background .15s;
-  }
-  .btn-reject-reg:hover:not(:disabled) { background: #fee2e2; }
-  .btn-reject-reg:disabled { opacity: .4; cursor: not-allowed; }
-
-  .flex { display: flex; }
-  .items-center { align-items: center; }
-  .gap-3 { gap: 12px; }
-  .text-right { text-align: right; }
-  .font-mono { font-family: monospace; }
-  .text-xs { font-size: 11px; }
-`;
-
-const modalStyles = `
-  .modal-overlay {
-    position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center;
-    background: rgba(15,23,42,.5); backdrop-filter: blur(6px); padding: 16px;
-  }
-  .modal-box {
-    background: #fff; border: 1px solid #e2e8f0; border-radius: 20px;
-    width: 100%; max-width: 860px; max-height: 90vh; overflow-y: auto;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    box-shadow: 0 25px 60px rgba(0,0,0,.18);
-  }
-  .modal-header {
-    position: sticky; top: 0; z-index: 10; display: flex; align-items: flex-start;
-    justify-content: space-between; gap: 12px; padding: 20px 24px;
-    border-bottom: 1px solid #f1f5f9; background: #fff;
-  }
-  .modal-chips { display: flex; gap: 6px; margin-bottom: 6px; }
-  .chip { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; border-radius: 6px; padding: 2px 8px; }
-  .chip-gray { background: #f1f5f9; color: #64748b; }
-  .chip-teal { background: #f0fdfa; color: #0f766e; border: 1px solid #99f6e4; }
-  .modal-title { font-size: 20px; font-weight: 800; color: #0f172a; }
-  .modal-close {
-    width: 34px; height: 34px; flex-shrink: 0; background: #f8fafc; border: 1px solid #e2e8f0;
-    border-radius: 8px; display: flex; align-items: center; justify-content: center;
-    color: #64748b; cursor: pointer; font-size: 12px; transition: all .15s;
-  }
-  .modal-close:hover { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
-  .modal-body { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; padding: 24px; }
-  @media (max-width: 640px) { .modal-body { grid-template-columns: 1fr; } }
-  .modal-left { display: flex; flex-direction: column; gap: 20px; }
-  .modal-right { display: flex; flex-direction: column; gap: 16px; }
-  .field-label { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #94a3b8; margin-bottom: 8px; }
-  .field-label.teal { color: #0d9488; }
-  .img-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .img-wrap { position: relative; border-radius: 10px; overflow: hidden; background: #f8fafc; border: 1px solid #e2e8f0; }
-  .img-main { grid-column: span 2; height: 200px; }
-  .img-thumb { height: 120px; }
-  .img-empty { height: 120px; border-radius: 10px; border: 1px dashed #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #94a3b8; font-style: italic; }
-  .prose-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; font-size: 13px; color: #475569; line-height: 1.65; }
-  .data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .data-cell { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; }
-  .data-cell-accent { background: #fffbeb; border-color: #fde68a; }
-  .data-label { font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #94a3b8; display: block; margin-bottom: 4px; }
-  .data-value { font-size: 13px; font-weight: 600; color: #0f172a; }
-  .data-value-accent { color: #b45309; }
-  .supplier-box { background: #f0fdfa; border: 1px solid #99f6e4; border-radius: 12px; padding: 16px; }
-  .supplier-name { font-size: 15px; font-weight: 800; color: #0f172a; margin: 6px 0 2px; }
-  .supplier-email { font-size: 12px; color: #0d9488; }
-  .supplier-id { margin-top: 12px; padding-top: 12px; border-top: 1px solid #ccfbf1; }
-  .supplier-id code { font-family: monospace; font-size: 12px; color: #64748b; display: block; margin-top: 3px; }
-  .modal-actions { display: flex; flex-direction: column; gap: 8px; }
-  .btn-approve { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; border-radius: 10px; padding: 12px; font-size: 13px; font-weight: 700; cursor: pointer; transition: background .15s; }
-  .btn-approve:hover { background: #dcfce7; }
-  .btn-danger { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; border-radius: 10px; padding: 12px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all .15s; }
-  .btn-danger:hover { background: #fee2e2; }
-  .mt-6 { margin-top: 24px; }
+  /* Modal */
+  .db-modal-overlay { position:fixed; inset:0; z-index:50; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,.6); backdrop-filter:blur(6px); padding:16px; }
+  .db-modal { background:#141c2e; border:1px solid #1e2d47; border-radius:20px; width:100%; max-width:860px; max-height:90vh; overflow-y:auto; box-shadow:0 24px 60px rgba(0,0,0,.5); }
+  .db-modal-hdr { position:sticky; top:0; z-index:10; display:flex; align-items:flex-start; justify-content:space-between; gap:12px; padding:20px 24px; border-bottom:1px solid #1e2d47; background:#141c2e; }
+  .db-modal-title { font-size:20px; font-weight:800; color:#f1f5f9; margin:6px 0 0; }
+  .db-modal-close { width:32px; height:32px; flex-shrink:0; background:#111827; border:1px solid #1e2d47; border-radius:7px; display:flex; align-items:center; justify-content:center; color:#64748b; cursor:pointer; font-size:12px; transition:all .14s; }
+  .db-modal-close:hover { background:rgba(239,68,68,.1); color:#f87171; border-color:rgba(239,68,68,.2); }
+  .db-modal-body { display:grid; grid-template-columns:1fr 1fr; gap:24px; padding:24px; }
+  @media(max-width:640px){.db-modal-body{grid-template-columns:1fr;}}
+  .db-modal-left,.db-modal-right { display:flex; flex-direction:column; gap:16px; }
+  .db-lbl { font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#475569; }
+  .db-img-grid { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
+  .db-img-wrap { position:relative; border-radius:9px; overflow:hidden; background:#111827; border:1px solid #1e2d47; }
+  .db-img-main { grid-column:span 2; height:190px; }
+  .db-img-thumb { height:110px; }
+  .db-img-empty { height:110px; border-radius:9px; border:1px dashed #1e2d47; display:flex; align-items:center; justify-content:center; font-size:13px; color:#475569; }
+  .db-prose { background:#111827; border:1px solid #1e2d47; border-radius:9px; padding:14px; font-size:13px; color:#94a3b8; line-height:1.65; }
+  .db-modal-grid { display:flex; flex-direction:column; gap:0; }
+  .db-modal-supplier { background:rgba(13,148,136,.06); border:1px solid rgba(13,148,136,.15); border-radius:11px; padding:14px; }
+  .db-btn-approve-big { background:rgba(34,197,94,.1); color:#4ade80; border:1px solid rgba(34,197,94,.2); border-radius:9px; padding:12px; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:700; cursor:pointer; transition:background .14s; width:100%; }
+  .db-btn-approve-big:hover { background:rgba(34,197,94,.18); }
+  .db-btn-danger-big { background:rgba(239,68,68,.1); color:#f87171; border:1px solid rgba(239,68,68,.2); border-radius:9px; padding:12px; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:700; cursor:pointer; transition:background .14s; width:100%; }
+  .db-btn-danger-big:hover { background:rgba(239,68,68,.18); }
 `;

@@ -1,19 +1,8 @@
 
-formular de contact []
 request 3 limbi[x]
 pw: ,+xAYdjCe$*+*7xM
 
-- daca clientul accepta oferta, sa vada si adminul si furnizorul ca a acceptat [x]
-- eroare la Nume Autu00f3lakk / Autu00f3festu00e9k [x]
-- titlu in 3 limbi la request [x]
-- la buyer dupa ce a acceptat sau refuzat oferta, dupa ce a trimis sa nu mai apara butoanele [x]
-- la inregistrare sa apara in toate limbile ofertele [x]
-- descrierea sa apara in dashboard la admin , sa vada ce pachet doreste, sau sa adaug un nou input pentru pachete[x]
-- partea de desing la marketplace , sa fie mai mici cardurile [x]
-- guided-request de pe pagina marketplace sa fie scos [x]
-- butonul de cautare de pe homepage nu functioneaza [x]
-- fa un test si pentru furnizori, sa adauge produse pe pagina
--Ware/Dienstleistung in: (nur Stadt nennen) in 3 limbi [x]
-- mai verifica complectarea pentru produs, sa vada admin toate detaliile
-- plitica ro si de
-- impresum ro hu de
+= Fa categoriile sa fie standard
+- formularul sa apara tot in backend cand il complecteaza -> backend e gata , mai trebuie front end dashboard [x]
+-Kontakt nu e tot in limba selectata [x]
+- verifica tot, si gata
