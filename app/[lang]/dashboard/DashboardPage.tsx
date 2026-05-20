@@ -37,6 +37,12 @@ interface RequestItem {
   offer_price?: string; offer_currency?: string;
   offer_delivery_time?: string; offer_terms?: string; offer_message?: string;
   customer_decision?: string; customer_decision_message?: string;
+  // ── Smart Sourcing fields (nume reale din API) ──
+  title?: string;
+  custom_product?: string;
+  custom_quantity?: string;
+  custom_message?: string;
+  request_text?: string;
   items?: {
     id: number; title: string; quantity?: string; unit?: string;
     delivery_location?: string; desired_date?: string; customer_note?: string;
@@ -57,26 +63,22 @@ const TR: Record<string, Record<string, string>> = {
     welcome:"Willkommen zurück", overview:"Übersicht Ihrer TrustBridge-Aktivitäten",
     dashboard:"Dashboard", company:"Firma", role:"Rolle", logout:"Abmelden",
     loading:"Daten werden geladen…",
-    // nav
     marketplace:"Marktplatz", marketplace_desc:"Produkte und Dienstleistungen ansehen.",
     inbox:"Eingehende Anfragen", inbox_desc:"Neue Lieferantenanfragen prüfen.",
     offers:"Angebote", offers_desc:"Antworten und Angebote verwalten.",
     basket:"Anfragekorb", basket_desc:"Ihre Beschaffungsanfrage bearbeiten.",
     new_req:"Neue Anfrage", new_req_desc:"Produkt oder Dienstleistung suchen lassen.",
     new_offer:"Neues Angebot",
-    // sections
     prod_approval:"Produktfreigabe", control:"Kontrolle",
     my_listings:"Meine Angebote", no_listings:"Noch keine Angebote.",
     main_reqs:"Hauptanfragen", sub_reqs:"Sub-Anfragen an Anbieter",
     new_regs:"Neue Registrierungen", no_regs:"Keine neuen Registrierungen.",
     no_reqs:"Noch keine Anfragen.", no_pending:"Keine Produkte zur Freigabe.",
-    // table headers
     th_product:"Produkt", th_supplier:"Anbieter", th_status:"Status", th_action:"Aktion",
     th_id:"ID", th_date:"Datum", th_company:"Firma", th_country:"Land",
     th_contact:"Kontakt", th_email:"E-Mail", th_vat:"USt-IdNr.", th_type:"Typ",
     th_phone:"Telefon", th_package:"Paket", th_message:"Nachricht", th_lang:"Sprache",
     th_offer:"Angebotspreis", th_decision:"Entscheidung",
-    // detail labels
     d_article:"Artikel-Nr.", d_brand:"Marke", d_origin:"Herkunft",
     d_city:"Lagerort", d_condition:"Zustand", d_moq:"MOQ",
     d_specs:"Technische Daten", d_packaging:"Verpackung",
@@ -89,15 +91,12 @@ const TR: Record<string, Record<string, string>> = {
     d_service_area:"Servicegebiet", d_availability:"Verfügbarkeit",
     d_billing:"Abrechnung", d_doc_types:"Dokumenttypen",
     d_documents:"Dokumente", d_photos:"Fotos",
-    // buttons
     btn_details:"Details", btn_approve:"Freigeben", btn_delete:"Löschen",
     btn_reject:"Ablehnen", btn_open:"Öffnen",
     btn_show:"Details anzeigen", btn_hide:"Zuklappen",
-    // statuses
     s_live:"Live", s_waiting:"Wartend", s_active:"Aktiv", s_in_review:"In Prüfung",
     s_new:"Neu", s_processing:"In Bearbeitung", s_sent_supp:"An Anbieter",
     s_offer_rec:"Angebot erhalten", s_completed:"Abgeschlossen", s_rejected:"Abgelehnt",
-    // misc
     on_request:"Auf Anfrage", confirm_delete:"Produkt unwiderruflich löschen?",
     alert_approved:"Genehmigt.", alert_rejected:"Abgelehnt.", alert_deleted:"Gelöscht.", alert_error:"Fehler.",
     stat_total:"Gesamt", stat_active:"Aktiv", stat_pending:"In Prüfung",
@@ -287,6 +286,7 @@ export default function DashboardPage() {
         const isSupplier = me.roles?.includes("tb_supplier") || me.roles?.includes("TrustBridge_Supplier");
 
         const reqs = await fetch(`${API}/requests?lang=${lang}`, { headers: h }).then(r => r.json());
+        console.log("REQUESTS RAW:", reqs); // debug — remove after confirming fields
         setRequests(Array.isArray(reqs) ? reqs : []);
 
         if (isAdmin) {
@@ -696,21 +696,41 @@ export default function DashboardPage() {
                 <div className="db-table-wrap">
                   <table className="db-table">
                     <thead><tr>
-                      <Th>{t(lang,"th_id")}</Th><Th>{t(lang,"th_date")}</Th>
-                      <Th>{t(lang,"th_company")}</Th><Th>{t(lang,"th_country")}</Th>
-                      <Th>{t(lang,"th_offer")}</Th><Th>{t(lang,"th_status")}</Th>
+                      <Th>{t(lang,"th_id")}</Th>
+                      <Th>{t(lang,"th_date")}</Th>
+                      <Th>{t(lang,"th_product")}</Th>
+                      <Th>{t(lang,"th_company")}</Th>
+                      <Th>{t(lang,"th_country")}</Th>
+                      <Th>{t(lang,"th_offer")}</Th>
+                      <Th>{t(lang,"th_status")}</Th>
                       <Th style={{width:100}}>{t(lang,"th_action")}</Th>
                     </tr></thead>
                     <tbody>
                       {mainReqs.map(req => {
                         const open = expandedReq === req.id;
                         const offerDisplay = req.offer_price ? `${req.offer_price} ${req.offer_currency||"EUR"}` : "–";
+                        // Resolve product name: direct field → first item title → fallback
+                        const productLabel = req.custom_product || req.items?.[0]?.title || "—";
                         return (
                           <React.Fragment key={req.id}>
                             <tr className={`db-tr${open?" db-tr-open":""}`}>
-                              <td className="db-td"><p className="db-mono">#{req.id}</p><p className="db-meta">{req.date}</p></td>
-                              <td className="db-td"><p className="db-name">{req.company||"—"}</p><p className="db-meta">{req.email}</p></td>
-                              <td className="db-td"><span className="db-meta">{req.delivery_country||"—"}</span></td>
+                              <td className="db-td">
+                                <p className="db-mono">#{req.id}</p>
+                              </td>
+                              <td className="db-td">
+                                <p className="db-meta">{req.date || "—"}</p>
+                              </td>
+                              <td className="db-td">
+                                {req.custom_product && <p className="db-name">{req.custom_product}</p>}
+                                {req.title?.includes("Smart Sourcing") && <p className="db-meta db-source-badge">Smart Sourcing</p>}
+                              </td>
+                              <td className="db-td">
+                                <p className="db-name">{req.company||"—"}</p>
+                                <p className="db-meta">{req.email}</p>
+                              </td>
+                              <td className="db-td">
+                                <span className="db-meta">{req.delivery_country||"—"}</span>
+                              </td>
                               <td className="db-td">
                                 <p className="db-mono">{offerDisplay}</p>
                                 {req.customer_decision && (
@@ -731,39 +751,71 @@ export default function DashboardPage() {
                             </tr>
                             {open && (
                               <tr className="db-detail-row">
-                                <td colSpan={7}>
+                                <td colSpan={8}>
                                   <div className="db-detail">
                                     <div className="db-detail-grid">
+
+                                      {/* ── Col 1: Client + Smart Sourcing ── */}
                                       <div className="db-detail-col">
                                         <p className="db-detail-sec">📋 {t(lang,"th_id")}</p>
-                                        <DR label={t(lang,"th_email")}     value={req.email} />
-                                        <DR label={t(lang,"th_country")}   value={req.delivery_country} />
-                                        <DR label="Transport"              value={req.transport_needed} />
-                                        <DR label="Vertraulichkeit"        value={req.confidentiality} />
+                                        <DR label={t(lang,"th_email")}   value={req.email} />
+                                        <DR label={t(lang,"th_country")} value={req.delivery_country} />
+                                        <DR label="Transport"            value={req.transport_needed} />
+                                        <DR label="Confidențialitate"    value={req.confidentiality} />
+                                        {req.title && <DR label="Request ID" value={req.title.split(" - ")[0]} />}
+                                        {(req.custom_product || req.custom_message) && <>
+                                          <p className="db-detail-sec" style={{marginTop:12}}>📦 {t(lang,"th_product")}</p>
+                                          <DR label={t(lang,"th_product")} value={req.custom_product} />
+                                          <DR label="Cantitate / Menge"   value={req.custom_quantity || null} />
+                                          {req.custom_message && (
+                                            <div style={{marginTop:6}}>
+                                              <p className="db-detail-lbl">{t(lang,"d_description")}</p>
+                                              <p className="db-detail-prose">{req.custom_message}</p>
+                                            </div>
+                                          )}
+                                        </>}
                                       </div>
+
+                                      {/* ── Col 2: Offer ── */}
                                       <div className="db-detail-col">
                                         <p className="db-detail-sec">💶 {t(lang,"th_offer")}</p>
-                                        <DR label={t(lang,"th_offer")}     value={req.offer_price ? `${req.offer_price} ${req.offer_currency}` : null} />
-                                        <DR label="Lieferzeit"             value={req.offer_delivery_time} />
-                                        <DR label="Bedingungen"            value={req.offer_terms} />
-                                        {req.offer_message && <><p className="db-detail-lbl" style={{marginTop:8}}>Nachricht</p><p className="db-detail-prose">{req.offer_message}</p></>}
+                                        <DR label={t(lang,"th_offer")}  value={req.offer_price ? `${req.offer_price} ${req.offer_currency}` : null} />
+                                        <DR label="Lieferzeit"          value={req.offer_delivery_time} />
+                                        <DR label="Bedingungen"         value={req.offer_terms} />
+                                        {req.offer_message && (
+                                          <>
+                                            <p className="db-detail-lbl" style={{marginTop:8}}>Nachricht</p>
+                                            <p className="db-detail-prose">{req.offer_message}</p>
+                                          </>
+                                        )}
                                       </div>
-                                      {req.customer_decision && (
+
+                                      {/* ── Col 3: Decision (conditional) ── */}
+                                      {req.customer_decision ? (
                                         <div className="db-detail-col">
                                           <p className="db-detail-sec">✅ {t(lang,"th_decision")}</p>
                                           <DR label={t(lang,"th_decision")} value={req.customer_decision === "accepted" ? t(lang,"dec_accepted") : t(lang,"dec_rejected")} />
-                                          {req.customer_decision_message && <p className="db-detail-prose" style={{marginTop:6}}>{req.customer_decision_message}</p>}
+                                          {req.customer_decision_message && (
+                                            <p className="db-detail-prose" style={{marginTop:6}}>{req.customer_decision_message}</p>
+                                          )}
                                         </div>
-                                      )}
+                                      ) : <div className="db-detail-col" />}
+
                                     </div>
+
+                                    {/* ── Items table ── */}
                                     {req.items?.length ? (
                                       <div className="db-detail-block">
                                         <p className="db-detail-lbl">{t(lang,"req_items")} ({req.items.length})</p>
                                         <div className="db-table-wrap">
                                           <table className="db-table db-table-sm">
                                             <thead><tr>
-                                              <Th>{t(lang,"req_item")}</Th><Th>Menge</Th><Th>Einheit</Th>
-                                              <Th>Lieferort</Th><Th>Termin</Th><Th>Bemerkung</Th>
+                                              <Th>{t(lang,"req_item")}</Th>
+                                              <Th>Menge</Th>
+                                              <Th>Einheit</Th>
+                                              <Th>Lieferort</Th>
+                                              <Th>Termin</Th>
+                                              <Th>Bemerkung</Th>
                                             </tr></thead>
                                             <tbody>
                                               {req.items.map((it,i) => (
@@ -781,6 +833,7 @@ export default function DashboardPage() {
                                         </div>
                                       </div>
                                     ) : null}
+
                                   </div>
                                 </td>
                               </tr>
@@ -1043,6 +1096,7 @@ const css = `
   .db-d-no { color:#f87171; }
   .db-parent-badge { font-family:'DM Mono',monospace; font-size:11px; background:rgba(168,85,247,.1); color:#c084fc; border:1px solid rgba(168,85,247,.2); border-radius:6px; padding:2px 8px; }
   .db-lang-badge { font-family:'DM Mono',monospace; font-size:9px; background:#111827; border:1px solid #1e2d47; border-radius:4px; padding:2px 6px; color:#64748b; }
+  .db-source-badge { display:inline-block; font-family:'DM Mono',monospace; font-size:9px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; background:rgba(249,115,22,.08); color:#fb923c; border:1px solid rgba(249,115,22,.2); border-radius:5px; padding:1px 6px; margin-top:3px; }
 
   /* Badges */
   .db-badge { display:inline-flex; align-items:center; font-size:10px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; border-radius:6px; padding:3px 9px; white-space:nowrap; }
