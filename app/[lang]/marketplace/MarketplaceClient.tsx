@@ -248,8 +248,19 @@ export default function MarketplacePage({ dict, lang }: { dict: any; lang: strin
     loginBtn: "Autentifică-te", search_hint: "Sugestii",
     cat_label: "Categorii", all_label: "Toate",
     stat_offers: "Oferte active", stat_suppliers: "Furnizori verificați", stat_countries: "Țări", stat_categories: "Categorii",
-    advantage_title: "Avantajul TrustBridge", advantage_text: "Vă sprijinim în căutarea furnizorilor, compararea ofertelor și procesarea sigură B2B.",
+    advantage_label: "Avantajul TrustBridge",
+    advantage_text: "Vă sprijinim în căutarea furnizorilor, compararea ofertelor și procesarea sigură B2B.",
+    guided_request: "Cerere ghidată →",
     guided_help: "Aveți nevoie de ajutor?", guided_question: "Nu știți exact ce căutați?",
+    filter_country: "Țara de livrare",
+    all_countries: "Toate țările",
+    no_image: "Fără imagine",
+    price_label: "Preț",
+    price_on_request: "La cerere",
+    supplier_label: "Furnizor",
+    results_label: "Rezultate",
+    results_found: "Oferte",
+    reset_filters: "Resetează filtrele",
   } : lang === "hu" ? {
     badge: "Okos beszerzés",
     title: "Nem található megfelelő ajánlat",
@@ -263,7 +274,18 @@ export default function MarketplacePage({ dict, lang }: { dict: any; lang: strin
     loginBtn: "Bejelentkezés", search_hint: "Javaslatok",
     cat_label: "Kategóriák", all_label: "Összes",
     stat_offers: "Aktív ajánlatok", stat_suppliers: "Hitelesített szállítók", stat_countries: "Országok", stat_categories: "Kategóriák",
-    advantage_title: "TrustBridge előnye", advantage_text: "Segítünk a szállítókeresésben, az ajánlatok összehasonlításában és a biztonságos B2B lebonyolításban.",
+    advantage_label: "TrustBridge előnye",
+    advantage_text: "Segítünk a szállítókeresésben, az ajánlatok összehasonlításában és a biztonságos B2B lebonyolításban.",
+    guided_request: "Irányított kérés →",
+    filter_country: "Szállítási ország",
+    all_countries: "Összes ország",
+    no_image: "Nincs kép",
+    price_label: "Ár",
+    price_on_request: "Árajánlat alapján",
+    supplier_label: "Szállító",
+    results_label: "Eredmények",
+    results_found: "Ajánlatok",
+    reset_filters: "Szűrők törlése",
   } : {
     badge: "Smart Sourcing",
     title: "Kein passendes Angebot gefunden",
@@ -706,7 +728,7 @@ export default function MarketplacePage({ dict, lang }: { dict: any; lang: strin
                   onClick={resetFilters}
                   className="hidden md:inline-flex h-9 items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-xs font-semibold text-slate-600 transition hover:bg-slate-50"
                 >
-                  Filter zurücksetzen
+                  {t.reset_filters}
                 </button>
               )}
             </div>
