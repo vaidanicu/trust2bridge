@@ -100,7 +100,7 @@
   "search": "Ajánlatadás",
   "search_desc": "Küldjön igényt a TrustBridge részére",
   "about": "Rólunk",
-  "Anbiten": "Termék/Szolgáltatás keresés   itt tud az igényt definiálni, mit kereshetünk Önnek",
+  "Anbiten": "Termék-/Szolgáltatáskeresés",
   "contact": "Kapcsolat",
   "login": "Bejelentkezés",
   "register": "Regisztráció",
@@ -114,6 +114,7 @@
     "no_description": "Nincs elérhető leírás.",
     "article_label": "Termék",
     "price_status": "Ár státusza",
+    "documents_label": "Dokumentumok & Tanúsítványok",
     "basket_help_text": "A kosárba tétel után kéréseit összesítve küldheti el az ajánlatkérő kosáron keresztül.",
     "benefits_title": "TrustBridge előnyök",
     "benefit_1_desc": "A beszállítókat a továbbítás előtt ellenőrizzük.",
@@ -284,10 +285,10 @@
   "price_units": ["Darab", "Raklap", "kg", "Tonna", "Megrendelés", "Projekt", "Óra", "Nap"],
   "step7_title": "7. Szállítási és Kereskedelmi feltételek",
   "incoterms": [
-    { "code": "EXW", "desc": "Ab Werk: A vevő szállítja el az árut és visel minden költséget a felvételi ponttól." },
-    { "code": "FCA", "desc": "Frei Frachtführer: Az eladó átadja az árut a kijelölt fuvarozónak." },
-    { "code": "DDP", "desc": "Geliefert verzollt: Az eladó vállal minden költséget (szállítás, vám, adók) a célállomásig." },
-    { "code": "DAP", "desc": "Geliefert benannter Ort: Az eladó szállít a célpontig, a vevő fizeti a vámot és adókat." }
+    { "code": "EXW", "desc": "Ex Works: A vevő szállítja el az árut és visel minden költséget a felvételi ponttól." },
+    { "code": "FCA", "desc": "Free Carrier: Az eladó átadja az árut a kijelölt fuvarozónak." },
+    { "code": "DDP", "desc": "Delivered Duty Paid: Az eladó vállal minden költséget (szállítás, vám, adók) a célállomásig." },
+    { "code": "DAP", "desc": "Delivered At Place: Az eladó szállít a célpontig, a vevő fizeti a vámot és adókat." }
   ],
   "label_pickup": "Felvételi hely / Átvételi pont",
   "label_delivery_countries": "Célországok",
@@ -295,6 +296,7 @@
   "step8_title": "8 & 9. Média és Dokumentumok",
   "label_photos": "Fotók feltöltése (Max 5)",
   "label_docs": "Dokumentumok / Tanúsítványok feltöltése",
+  "document_types": ["Adatlap", "Tanúsítvány", "CE-jelölés", "ISO-tanúsítvány", "Számla", "Szállítólevél"],
   "step6_confirm_title": "11. Megerősítés",
   "confirms": [
     "Megerősítem, hogy a megadott adatok helyesek.",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import AddToRequestButton from "../../components/AddToRequestButton";
@@ -21,6 +21,22 @@ export default function MarketplaceDetailsClient({ item: initialItem, dict, lang
   const [item, setItem] = useState<any>(initialItem);
   const [isLoading, setIsLoading] = useState(!initialItem);
   const [error, setError] = useState<string | null>(null);
+  const [activePhoto, setActivePhoto] = useState<string | null>(null);
+  const [lightbox, setLightbox] = useState<string | null>(null);
+
+  // Toate pozele: main image + galerie, fără duplicate
+  const allPhotos = useMemo(() => {
+    const di = item || initialItem;
+    if (!di) return [];
+    const photos: string[] = [];
+    if (di.image) photos.push(di.image);
+    if (Array.isArray(di.gallery)) {
+      di.gallery.forEach((url: string) => {
+        if (url && !photos.includes(url)) photos.push(url);
+      });
+    }
+    return photos;
+  }, [item, initialItem]);
 
   useEffect(() => {
     const fetchItemDetails = async () => {
@@ -111,12 +127,19 @@ export default function MarketplaceDetailsClient({ item: initialItem, dict, lang
         {/* Coloana Stângă: Media & Descriere */}
         <div className="space-y-8">
           <div className="overflow-hidden rounded-3xl border-2 border-slate-900 bg-white shadow-[10px_10px_0px_0px_rgba(0,0,0,1)]">
-            <div className="relative aspect-video w-full bg-slate-100">
-              {displayItem.image ? (
+            {/* Imagine principală */}
+            <div
+              className="relative aspect-video w-full bg-slate-100 cursor-zoom-in"
+              onClick={() => {
+                const src = activePhoto || allPhotos[0];
+                if (src) setLightbox(src);
+              }}
+            >
+              {(activePhoto || allPhotos[0]) ? (
                 <img
-                  src={displayItem.image}
+                  src={activePhoto || allPhotos[0]}
                   alt={displayItem.title}
-                  className="h-full w-full object-cover"
+                  className="h-full w-full object-cover transition-all duration-300"
                   loading="lazy"
                 />
               ) : (
@@ -124,7 +147,32 @@ export default function MarketplaceDetailsClient({ item: initialItem, dict, lang
                   {dict.common?.no_image || "Kein Bild vorhanden"}
                 </div>
               )}
+              {allPhotos.length > 0 && (
+                <span className="absolute bottom-3 right-3 bg-black/60 text-white text-xs px-2 py-1 rounded-lg font-bold">
+                  🔍 {allPhotos.indexOf(activePhoto || allPhotos[0]) + 1} / {allPhotos.length}
+                </span>
+              )}
             </div>
+
+            {/* Thumbnails galerie — afișate întotdeauna când există mai mult de 1 poză */}
+            {allPhotos.length > 1 && (
+              <div className="flex gap-2 overflow-x-auto px-4 py-3 bg-slate-50 border-t-2 border-slate-200">
+                {allPhotos.map((url, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => setActivePhoto(url)}
+                    className={`flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden border-2 transition-all ${
+                      (activePhoto || allPhotos[0]) === url
+                        ? "border-[#108280] scale-105 shadow-[3px_3px_0px_0px_#108280]"
+                        : "border-slate-300 hover:border-slate-600 opacity-70 hover:opacity-100"
+                    }`}
+                  >
+                    <img src={url} alt={`foto ${i + 1}`} className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
 
             <div className="p-8">
               <h3 className="text-xs font-black uppercase tracking-widest text-[#108280]">
@@ -135,6 +183,82 @@ export default function MarketplaceDetailsClient({ item: initialItem, dict, lang
               </div>
             </div>
           </div>
+
+          {/* Documente PDF — mutate după descriere, vizibile mereu dacă există */}
+          {Array.isArray(displayItem.documents) && displayItem.documents.length > 0 && (
+            <div className="overflow-hidden rounded-3xl border-2 border-slate-900 bg-white shadow-[10px_10px_0px_0px_rgba(0,0,0,1)]">
+              <div className="flex items-center gap-3 border-b-2 border-slate-900 bg-red-600 px-6 py-4">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                <h3 className="text-xs font-black uppercase tracking-widest text-white">
+                  {dict.item_details?.documents_label || "Dokumente & Zertifikate"}
+                </h3>
+                <span className="ml-auto bg-white text-red-600 text-xs font-black px-2 py-0.5 rounded-full">
+                  {displayItem.documents.length}
+                </span>
+              </div>
+              <ul className="divide-y divide-slate-100">
+                {displayItem.documents.map((doc: any, i: number) => (
+                  <li key={i}>
+                    <a
+                      href={doc.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-4 px-6 py-4 hover:bg-slate-50 transition-colors group"
+                    >
+                      <span className="flex-shrink-0 w-10 h-10 rounded-xl bg-red-600 flex items-center justify-center">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                        </svg>
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-sm text-slate-800 truncate group-hover:text-[#108280] transition-colors">
+                          {doc.name || `Document ${i + 1}`}
+                        </p>
+                        <p className="text-xs text-slate-400 uppercase tracking-wider mt-0.5">PDF</p>
+                      </div>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 text-slate-300 group-hover:text-[#108280] transition-colors">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                      </svg>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Lightbox fullscreen */}
+          {lightbox && (
+            <div
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
+              onClick={() => setLightbox(null)}
+            >
+              <button
+                className="absolute top-4 right-5 text-white text-4xl font-black leading-none hover:text-yellow-300 transition-colors"
+                onClick={() => setLightbox(null)}
+              >×</button>
+              {allPhotos.length > 1 && (
+                <>
+                  <button
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-white text-4xl font-black hover:text-yellow-300 transition-colors px-2"
+                    onClick={(e) => { e.stopPropagation(); const idx = allPhotos.indexOf(lightbox); setLightbox(allPhotos[(idx - 1 + allPhotos.length) % allPhotos.length]); }}
+                  >‹</button>
+                  <button
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-white text-4xl font-black hover:text-yellow-300 transition-colors px-2"
+                    onClick={(e) => { e.stopPropagation(); const idx = allPhotos.indexOf(lightbox); setLightbox(allPhotos[(idx + 1) % allPhotos.length]); }}
+                  >›</button>
+                </>
+              )}
+              <img
+                src={lightbox}
+                alt="preview"
+                className="max-h-[90vh] max-w-[90vw] rounded-2xl object-contain shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+              />
+              <span className="absolute bottom-5 text-white/60 text-sm font-bold">
+                {allPhotos.indexOf(lightbox) + 1} / {allPhotos.length}
+              </span>
+            </div>
+          )}
 
           {/* Info Box */}
           <div className="rounded-3xl border-2 border-slate-900 bg-[#e0f2f1] p-8 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)]">

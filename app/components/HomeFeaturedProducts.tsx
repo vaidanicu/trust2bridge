@@ -49,7 +49,7 @@ export default function HomeFeaturedProducts({
   if (loading) {
     return (
       <div className="col-span-full py-12 text-center text-slate-400">
-        Se încarcă ofertele...
+        {dict.marketplace.loading}
       </div>
     );
   }
@@ -57,7 +57,7 @@ export default function HomeFeaturedProducts({
   if (items.length === 0) {
     return (
       <div className="col-span-full py-12 text-center text-slate-400">
-        Nu există oferte publicate momentan.
+        {dict.marketplace.no_results}
       </div>
     );
   }

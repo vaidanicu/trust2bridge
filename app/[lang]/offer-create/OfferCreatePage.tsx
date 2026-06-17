@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 const API = "https://trustbridgeb2b.com/backend/wp-json/trustbridge/v1";
@@ -15,6 +15,8 @@ export default function OfferCreatePage({ dict, lang }: { dict: any; lang: strin
   const [mainCat, setMainCat]             = useState("Food");
   const [subCat, setSubCat] = useState("")
   const [accessGranted, setAccessGranted] = useState<boolean | null>(null);
+  const [photos, setPhotos]               = useState<File[]>([]);
+  const [documents, setDocuments]         = useState<File[]>([]);
 
   useEffect(() => {
     const token   = localStorage.getItem("trustbridge_token");
@@ -209,6 +211,9 @@ export default function OfferCreatePage({ dict, lang }: { dict: any; lang: strin
     qsa("delivery_countries").forEach((c) => formData.append("delivery_countries[]", c));
     qsa("service_area").forEach((a)        => formData.append("service_area[]", a));
     qsa("document_types").forEach((d)      => formData.append("document_types[]", d));
+
+    photos.forEach((f)    => formData.append("photos[]", f, f.name));
+    documents.forEach((f) => formData.append("documents[]", f, f.name));
 
     try {
       const res = await fetch(`${API}/item-create`, {
@@ -436,14 +441,14 @@ export default function OfferCreatePage({ dict, lang }: { dict: any; lang: strin
             {/* 07 Medien & Dokumente */}
             <Section step="07" title={dict.offer.step8_title}>
               <div className="tb-grid2">
-                <TbFileInput name="photos"    label={dict.offer.label_photos} accept="image/*" multiple t={T} />
-                <TbFileInput name="documents" label={dict.offer.label_docs}   multiple t={T} />
+                <TbImageUpload label={dict.offer.label_photos} files={photos} onChange={setPhotos} />
+                <TbDocUpload   label={dict.offer.label_docs}   files={documents} onChange={setDocuments} />
               </div>
               <div className="mt6">
                 <TbCheckboxGroup
                   title={dict.offer.label_document_types ?? T.document_types_title}
                   name="document_types"
-                  items={["Datenblatt", "Zertifikat", "CE-Zeichen", "ISO-Zertifikat", "Rechnung", "Lieferschein"]}
+                  items={dict.offer.document_types ?? ["Datenblatt", "Zertifikat", "CE-Zeichen", "ISO-Zertifikat", "Rechnung", "Lieferschein"]}
                 />
               </div>
             </Section>
@@ -541,19 +546,120 @@ function TbSelect({ label, name, children, value, onChange }: {
   );
 }
 
-function TbFileInput({ label, name, accept, multiple, t }: {
-  label: string; name: string; accept?: string; multiple?: boolean; t?: Record<string, string>;
+function TbImageUpload({ label, files, onChange }: {
+  label: string; files: File[]; onChange: (f: File[]) => void;
 }) {
-  const fileText = t ? `${t.file_select}${multiple ? " " + t.file_multi : ""}…` : "Datei auswählen…";
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const addFiles = (incoming: FileList | null) => {
+    if (!incoming) return;
+    const valid = Array.from(incoming).filter((f) => f.type.startsWith("image/"));
+    onChange([...files, ...valid].slice(0, 5));
+  };
+
+  const remove = (idx: number) => {
+    const next = files.filter((_, i) => i !== idx);
+    onChange(next);
+  };
+
   return (
-    <label className="tb-field">
+    <div className="tb-field">
       <span className="tb-lbl">{label}</span>
-      <div className="tb-file">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        <span className="tb-file-txt">{fileText}</span>
-        <input type="file" name={name} accept={accept} multiple={multiple} className="tb-file-inp" />
+      <div
+        className="tb-dropzone"
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={(e) => { e.preventDefault(); addFiles(e.dataTransfer.files); }}
+        onClick={() => inputRef.current?.click()}
+      >
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        <span className="tb-dropzone-main">Click sau trage imagini</span>
+        <span className="tb-dropzone-hint">PNG · JPG · WEBP · max 5 imagini</span>
       </div>
-    </label>
+      <input
+        ref={inputRef} type="file" accept="image/*" multiple
+        style={{ display: "none" }}
+        onChange={(e) => { addFiles(e.target.files); e.target.value = ""; }}
+      />
+      {files.length > 0 && (
+        <div className="tb-img-grid">
+          {files.map((file, i) => (
+            <div key={i} className="tb-img-thumb">
+              <img src={URL.createObjectURL(file)} alt={file.name} />
+              <button type="button" className="tb-img-remove" onClick={() => remove(i)} aria-label="Remove">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+          ))}
+          {files.length < 5 && (
+            <button type="button" className="tb-img-add" onClick={() => inputRef.current?.click()}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TbDocUpload({ label, files, onChange }: {
+  label: string; files: File[]; onChange: (f: File[]) => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const addFiles = (incoming: FileList | null) => {
+    if (!incoming) return;
+    onChange([...files, ...Array.from(incoming)]);
+  };
+
+  const remove = (idx: number) => onChange(files.filter((_, i) => i !== idx));
+
+  const fmtSize = (b: number) =>
+    b < 1024 ? `${b} B` : b < 1048576 ? `${(b / 1024).toFixed(1)} KB` : `${(b / 1048576).toFixed(1)} MB`;
+
+  const extIcon = (name: string) => {
+    const ext = name.split(".").pop()?.toLowerCase();
+    if (ext === "pdf") return "#e74c3c";
+    if (ext === "doc" || ext === "docx") return "#2980b9";
+    if (ext === "xls" || ext === "xlsx") return "#27ae60";
+    return "#64748b";
+  };
+
+  return (
+    <div className="tb-field">
+      <span className="tb-lbl">{label}</span>
+      <div
+        className="tb-dropzone"
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={(e) => { e.preventDefault(); addFiles(e.dataTransfer.files); }}
+        onClick={() => inputRef.current?.click()}
+      >
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span className="tb-dropzone-main">Click sau trage documente</span>
+        <span className="tb-dropzone-hint">PDF · DOC · DOCX · XLS · XLSX</span>
+      </div>
+      <input
+        ref={inputRef} type="file"
+        accept=".pdf,.doc,.docx,.xls,.xlsx,.csv"
+        multiple style={{ display: "none" }}
+        onChange={(e) => { addFiles(e.target.files); e.target.value = ""; }}
+      />
+      {files.length > 0 && (
+        <ul className="tb-doc-list">
+          {files.map((file, i) => (
+            <li key={i} className="tb-doc-item">
+              <span className="tb-doc-ext" style={{ background: extIcon(file.name) }}>
+                {file.name.split(".").pop()?.toUpperCase().slice(0, 4)}
+              </span>
+              <span className="tb-doc-name">{file.name}</span>
+              <span className="tb-doc-size">{fmtSize(file.size)}</span>
+              <button type="button" className="tb-doc-remove" onClick={() => remove(i)} aria-label="Remove">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }
 
@@ -759,21 +865,83 @@ const css = `
     transform: translateY(-50%); color: #293d57; pointer-events: none;
   }
 
-  /* File input */
-  .tb-file {
-    position: relative; display: flex; align-items: center; gap: 9px;
+  /* Dropzone */
+  .tb-dropzone {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
     background: #0e1420;
-    border: 1px dashed #1e2d47;
-    border-radius: 10px; padding: 10px 13px;
-    cursor: pointer; color: #475569; font-size: 13px;
-    transition: border-color .17s;
+    border: 1.5px dashed #1e2d47;
+    border-radius: 12px; padding: 22px 16px;
+    cursor: pointer; color: #475569;
+    transition: border-color .17s, background .17s;
+    text-align: center;
   }
-  .tb-file:hover { border-color: #2a3f60; color: #64748b; }
-  .tb-file-txt { flex: 1; font-size: 13px; }
-  .tb-file-inp {
-    position: absolute; inset: 0; opacity: 0;
-    cursor: pointer; width: 100%; height: 100%;
+  .tb-dropzone:hover {
+    border-color: rgba(13,148,136,.5);
+    background: rgba(13,148,136,.03);
+    color: #64748b;
   }
+  .tb-dropzone-main { font-size: 13px; font-weight: 600; color: #64748b; }
+  .tb-dropzone-hint { font-size: 10px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: #293d57; }
+
+  /* Image thumbnails */
+  .tb-img-grid {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;
+  }
+  .tb-img-thumb {
+    position: relative; width: 72px; height: 72px;
+    border-radius: 8px; overflow: hidden;
+    border: 1px solid #1e2d47;
+  }
+  .tb-img-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .tb-img-remove {
+    position: absolute; top: 3px; right: 3px;
+    width: 18px; height: 18px;
+    background: rgba(0,0,0,.7); border: none; border-radius: 50%;
+    color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    padding: 0;
+  }
+  .tb-img-remove:hover { background: #e74c3c; }
+  .tb-img-add {
+    width: 72px; height: 72px;
+    border-radius: 8px;
+    border: 1.5px dashed #1e2d47; background: #0e1420;
+    color: #293d57; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: border-color .15s, color .15s;
+  }
+  .tb-img-add:hover { border-color: rgba(13,148,136,.5); color: #0d9488; }
+
+  /* Document list */
+  .tb-doc-list {
+    list-style: none; margin: 10px 0 0; padding: 0;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .tb-doc-item {
+    display: flex; align-items: center; gap: 9px;
+    background: #0e1420;
+    border: 1px solid #1e2d47; border-radius: 8px;
+    padding: 8px 10px;
+  }
+  .tb-doc-ext {
+    flex-shrink: 0;
+    font-size: 9px; font-weight: 800; letter-spacing: .04em;
+    color: #fff; border-radius: 5px; padding: 3px 5px;
+    min-width: 34px; text-align: center;
+  }
+  .tb-doc-name {
+    flex: 1; font-size: 12px; color: #94a3b8;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    max-width: 160px;
+  }
+  .tb-doc-size { font-size: 11px; color: #475569; flex-shrink: 0; }
+  .tb-doc-remove {
+    flex-shrink: 0;
+    width: 20px; height: 20px;
+    background: transparent; border: none; border-radius: 4px;
+    color: #475569; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    padding: 0; transition: color .15s, background .15s;
+  }
+  .tb-doc-remove:hover { color: #e74c3c; background: rgba(231,76,60,.08); }
 
   /* Checkboxes */
   .tb-cbg { display: flex; flex-direction: column; gap: 9px; }
